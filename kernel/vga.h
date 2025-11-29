@@ -1,4 +1,3 @@
-/* kernel/vga.h - VGA text mode driver header */
 
 #ifndef VGA_H
 #define VGA_H
@@ -29,10 +28,13 @@ enum vga_color {
 #define VGA_WIDTH 80
 #define VGA_HEIGHT 25
 
-/* Function declarations */
 void terminal_initialize(void);
 void terminal_putchar(char c);
 void terminal_writestring(const char* str);
 void terminal_clear(void);
+// void enable_cursor(uint8_t cursor_start, uint8_t cursor_end);
+// void disable_cursor();
+
+
 
 #endif /* VGA_H */

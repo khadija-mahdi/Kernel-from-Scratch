@@ -1,9 +1,20 @@
-ENTRY(_start)
-
 SECTIONS
 {
-    . = 1M;          /* load at 1MB */
-    .text : { *(.text) }
-    .data : { *(.data) }
-    .bss  : { *(.bss) }
+    . = 1M;
+
+    .text :
+    {
+        *(.multiboot_header)
+        *(.text)
+    }
+    .data :
+    {
+        *(.data)
+    }
+
+    /* Read-write uninitialized data */
+    .bss :
+    {
+        *(.bss)
+    }
 }
