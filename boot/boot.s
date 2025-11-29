@@ -1,14 +1,20 @@
-; Multiboot constants
-MBOOT_MAGIC     equ 0x1BADB002
-MBOOT_FLAGS     equ 0x00000003
-MBOOT_CHECKSUM  equ -(MBOOT_MAGIC + MBOOT_FLAGS)
+section .multiboot_header
+header_start:
+    dd 0xe85250d6                ; magic number (multiboot 2)
+    dd 0                         ; architecture 0 (protected mode i386)
+    dd header_end - header_start ; header length
+    
+    ; checksum
+    dd -(0xe85250d6 + 0 + (header_end - header_start))
+    
+    ; required end tag
+    dw 0    ; type
+    dw 0    ; flags
+    dd 8    ; size
+header_end:
 
-; Multiboot header section (must be in first 8KB)
-section .multiboot
-align 4
-    dd MBOOT_MAGIC
-    dd MBOOT_FLAGS
-    dd MBOOT_CHECKSUM
+
+section .note.GNU-stack noalloc noexec nowrite progbits
 
 ; Reserve stack space (16KB)
 section .bss
