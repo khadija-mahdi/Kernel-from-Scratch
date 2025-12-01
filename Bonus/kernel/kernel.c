@@ -4,17 +4,15 @@
 void kernel_main(void)
 {
     terminal_initialize();
-    
 
-    int i = 0;
-    while (i < 50)
-    {
-        terminal_writestring("Line number: ");
-        print_int(i);
-        terminal_putchar('\n');
-        i++;
-    }
-    terminal_writestring("Hello, Kernel World!\n");
+    int keycode = 42;
+    char *msg = "Kernel loaded\n";
+    printk(msg);
+
+    printk_color(VGA_COLOR_GREEN, VGA_COLOR_BLACK, "Info: %s\n", "Kernel ready");
+    printk_color(VGA_COLOR_YELLOW, VGA_COLOR_BLACK, "Warning: %d free pages\n", keycode);
+    printk_color(VGA_COLOR_RED, VGA_COLOR_BLACK, "Error: %s\n", "Disk not found");
+
     keyboard_input();
     while (1)
     {

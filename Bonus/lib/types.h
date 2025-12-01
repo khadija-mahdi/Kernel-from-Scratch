@@ -16,10 +16,12 @@ typedef signed short int16_t;
 typedef signed int int32_t;
 typedef signed long long int64_t;
 
+
 /* Size type */
 typedef uint32_t size_t;
 
 /*static */
+ 
 
 /* NULL pointer */
 #define NULL ((void *)0)
@@ -34,6 +36,9 @@ typedef enum
 
 #define LLONG_MAX 18446744073709551615ULL;
 
-int ft_atoi(const char *str);
-
+void itoa(int num, char *number);
+unsigned int digit_count(int num);
+unsigned int strlen(const char *str);
+void printk(const char *format, ...);
+void printk_color(char fg, char bg, const char *format, ...);
 #endif /* TYPES_H */

@@ -18,7 +18,7 @@ ISO = kfs_1.iso
 
 # Source files
 ASM_SRC = boot/boot.s
-C_SRC = kernel/kernel.c kernel/vga.c lib/keyboard.c lib/keyboadEntries.c
+C_SRC = kernel/kernel.c kernel/vga.c lib/keyboard.c lib/keyboadEntries.c lib/printk.c
 
 # Object files
 ASM_OBJ = $(ASM_SRC:.s=.o)

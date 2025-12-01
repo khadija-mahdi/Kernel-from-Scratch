@@ -1,14 +1,13 @@
 #include "vga.h"
 
-#define MAX_SCREENS 3
+/* Definitions for globals declared in vga.h */
+short *const VGA_MEMORY = (short *)0xB8000;
+char screen[MAX_SCREENS][VGA_WIDTH * VGA_HEIGHT * 2];
+int current_screen = 0;
 
-static short *const VGA_MEMORY = (short *)0xB8000;
-static char screen[MAX_SCREENS][VGA_WIDTH * VGA_HEIGHT * 2];
-static int current_screen = 0;
+char terminal_color;
 size_t screen_cursor_row[MAX_SCREENS];
 size_t screen_cursor_col[MAX_SCREENS];
-
-static char terminal_color;
 
 unsigned int strlen(const char *str)
 {
@@ -59,7 +58,7 @@ static inline short vga_entry(unsigned char c, char color)
     return (short)c | (short)color << 8;
 }
 
-static inline char vga_entry_color(enum vga_color fg, enum vga_color bg)
+char vga_entry_color(enum vga_color fg, enum vga_color bg)
 {
     return fg | bg << 4;
 }
@@ -170,7 +169,7 @@ void restoreScreen()
     set_cursor(get_offset(screen_cursor_col[current_screen], screen_cursor_row[current_screen]));
 }
 
-static void terminal_putentryat(char c, char color, size_t x, size_t y)
+void terminal_putentryat(char c, char color, size_t x, size_t y)
 {
     const size_t index = y * VGA_WIDTH + x;
     VGA_MEMORY[index] = vga_entry(c, color);
