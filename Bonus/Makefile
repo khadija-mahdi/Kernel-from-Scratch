@@ -51,7 +51,7 @@ $(ISO): $(KERNEL)
 	@cp $(KERNEL) iso/boot/
 	@cp grub.cfg iso/boot/grub/
 	@grub-mkrescue -o $(ISO) iso \
-	--modules="multiboot normal" --compress=xz 2>/dev/null
+	--compress=xz 2>/dev/null
 	@rm -rf iso
 	@echo "ISO created: $(ISO)"
 
