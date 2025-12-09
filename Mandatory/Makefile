@@ -7,10 +7,10 @@ LD = ld
 
 # Flags
 ASFLAGS = -f elf32
-CFLAGS = -m32 -ffreestanding -fno-builtin -fno-exceptions \
-         -fno-stack-protector -nostdlib -nodefaultlibs \
-         -Wall -Wextra -O2
-LDFLAGS = -m elf_i386 -T linker.ld
+CFLAGS = -m32 -ffreestanding -O2 -fno-builtin -fno-exceptions\
+         -fno-stack-protector -nostdlib -nodefaultlibs 
+#          -Wall -Wextra 
+LDFLAGS = -m elf_i386  -T linker.ld
 
 # Output files
 KERNEL = kernel.bin
@@ -49,14 +49,9 @@ $(ISO): $(KERNEL)
 	@echo "Creating ISO image..."
 	@mkdir -p iso/boot/grub
 	@cp $(KERNEL) iso/boot/
-	@echo 'set timeout=2' > iso/boot/grub/grub.cfg
-	@echo 'set default=0' >> iso/boot/grub/grub.cfg
-	@echo '' >> iso/boot/grub/grub.cfg
-	@echo 'menuentry "KFS_1" {' >> iso/boot/grub/grub.cfg
-	@echo '    multiboot2 /boot/kernel.bin' >> iso/boot/grub/grub.cfg
-	@echo '    boot' >> iso/boot/grub/grub.cfg
-	@echo '}' >> iso/boot/grub/grub.cfg
+	@cp grub.cfg iso/boot/grub/
 	@grub-mkrescue -o $(ISO) iso 2>/dev/null
+	@rm -rf iso
 	@echo "ISO created: $(ISO)"
 
 # Run in QEMU

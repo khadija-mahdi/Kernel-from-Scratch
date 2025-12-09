@@ -15,7 +15,7 @@ header_end:
 
 
 
-section .kherya
+section .bss
 stack_bottom:
     resb 16384
 stack_top:
@@ -29,4 +29,6 @@ _start:
     
     ; Call C kernel main function
     call kernel_main
-    
+
+
+section .note.GNU-stack noalloc noexec nowrite progbits
