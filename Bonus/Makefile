@@ -49,14 +49,10 @@ $(ISO): $(KERNEL)
 	@echo "Creating ISO image..."
 	@mkdir -p iso/boot/grub
 	@cp $(KERNEL) iso/boot/
-	@echo 'set timeout=2' > iso/boot/grub/grub.cfg
-	@echo 'set default=0' >> iso/boot/grub/grub.cfg
-	@echo '' >> iso/boot/grub/grub.cfg
-	@echo 'menuentry "KFS_1" {' >> iso/boot/grub/grub.cfg
-	@echo '    multiboot2 /boot/kernel.bin' >> iso/boot/grub/grub.cfg
-	@echo '    boot' >> iso/boot/grub/grub.cfg
-	@echo '}' >> iso/boot/grub/grub.cfg
-	@grub-mkrescue -o $(ISO) iso 2>/dev/null
+	@cp grub.cfg iso/boot/grub/
+	@grub-mkrescue -o $(ISO) iso \
+	--modules="multiboot normal" --compress=xz 2>/dev/null
+	@rm -rf iso
 	@echo "ISO created: $(ISO)"
 
 # Run in QEMU
