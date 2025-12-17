@@ -37,7 +37,6 @@ void sleep(uint32_t timer_count)
     wait_for_io(timer_count);
 }
 
-
 void keyboard_input()
 {
     char ch = 0;
@@ -46,15 +45,18 @@ void keyboard_input()
     while (1)
     {
         keycode = get_input_keycode();
-        if (keycode == 0 || keycode & 0x80)
+        if (keycode == 0 || keycode & 0x80){
+            handle_key_release(keycode & 0x7F);
             continue;
+        }
         if (keycode == KEY_ENTER)
+        {
             terminal_putchar('\n');
+        }
         else if (keycode == KEY_BACKSPACE)
             remove_last_char();
         else
         {
-            handle_key_release(keycode);
             ch = get_ascii_char(keycode);
             if (ch == 0x03)
             {

@@ -8,7 +8,7 @@ char get_ascii_char(char keycode)
 {
     if (keycode == KEY_LEFT_SHIFT || keycode == KEY_RIGHT_SHIFT)
     {
-        shift_pressed = 1;
+        shift_pressed = !shift_pressed;
         return 0;
     }
 
@@ -19,7 +19,7 @@ char get_ascii_char(char keycode)
     }
     if (keycode == KEY_CTRL)
     {
-        ctrl_pressed = 1;
+        ctrl_pressed = !ctrl_pressed;
         return 0;
     }
 
@@ -148,4 +148,6 @@ void handle_key_release(char keycode)
 {
     if (keycode == KEY_LEFT_SHIFT || keycode == KEY_RIGHT_SHIFT)
         shift_pressed = 0;
+    else if (keycode == KEY_CTRL)
+        ctrl_pressed = 0;
 }
