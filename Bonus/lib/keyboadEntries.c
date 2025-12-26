@@ -132,7 +132,7 @@ char get_ascii_char(char keycode)
     case KEY_ENTER:
         return '\n';
     case KEY_TAB:
-        return  ctrl_pressed ? 0x09 : '\t';
+        return  ctrl_pressed ? 0x10 : 0x09;
     case KEY_BACKSPACE:
         return '\b';
     case KEY_DELETE:

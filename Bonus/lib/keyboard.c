@@ -63,8 +63,10 @@ void keyboard_input()
                 terminal_writestring("^C\n");
                 continue;
             }
-            else if (ch == 0x09)
+            else if (ch == 0x10)
                 restoreScreen();
+            else if (ch == 0x09)
+                terminal_writestring("    ");
             else if (ch != 0)
                 terminal_putchar(ch);
         }

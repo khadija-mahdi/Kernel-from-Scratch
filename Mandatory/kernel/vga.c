@@ -50,6 +50,14 @@ void terminal_putchar(char c) {
     }
 }
 
+
+size_t strlen(const char* str) {
+    size_t len = 0;
+    while (str[len])
+        len++;
+    return len;
+}
+
 void terminal_writestring(const char* str) {
     for (size_t i = 0; str[i] != '\0'; i++)
         terminal_putchar(str[i]);
