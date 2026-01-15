@@ -7,7 +7,7 @@ LD = ld
 
 # Flags
 ASFLAGS = -f elf32
-CFLAGS = -m32 -ffreestanding -fno-builtin -fno-exceptions \
+CFLAGS = -g -m32 -ffreestanding -fno-builtin -fno-exceptions \
          -fno-stack-protector -nostdlib -nodefaultlibs \
          -Wall -Wextra -O2
 LDFLAGS = -m elf_i386 -T linker.ld
@@ -17,8 +17,8 @@ KERNEL = kernel.bin
 ISO = kfs_1.iso
 
 # Source files
-ASM_SRC = boot/boot.s
-C_SRC = kernel/kernel.c kernel/vga.c lib/keyboard.c lib/keyboadEntries.c lib/printk.c
+ASM_SRC = boot/boot.s lib/gdt_asm.s
+C_SRC = kernel/kernel.c kernel/vga.c lib/keyboard.c lib/keyboadEntries.c lib/printk.c lib/gdt.c
 
 # Object files
 ASM_OBJ = $(ASM_SRC:.s=.o)

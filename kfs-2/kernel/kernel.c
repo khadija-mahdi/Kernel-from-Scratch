@@ -1,10 +1,11 @@
 
 #include "vga.h"
+#include "../lib/gdt.h"
 
 void kernel_main(void)
 {
     terminal_initialize();
-
+    init_gdt();
     int keycode = 42;
     char *msg = "Kernel loaded\n";
     printk(msg);
