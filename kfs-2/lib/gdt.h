@@ -1,5 +1,7 @@
 #include "stdint.h"
 
+#define GDT_ADDR 0x00000800
+
 struct  gdt_entry_struct
 {
     uint16_t limit;

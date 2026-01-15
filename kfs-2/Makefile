@@ -17,8 +17,10 @@ KERNEL = kernel.bin
 ISO = kfs_1.iso
 
 # Source files
-ASM_SRC = boot/boot.s lib/gdt_asm.s
-C_SRC = kernel/kernel.c kernel/vga.c lib/keyboard.c lib/keyboadEntries.c lib/printk.c lib/gdt.c
+ASM_SRC = boot/boot.s boot/gdt.s
+C_SRC = kernel/kernel.c kernel/vga.c\
+		lib/keyboard.c lib/keyboadEntries.c\
+		lib/print_stack.c lib/printk.c lib/gdt.c
 
 # Object files
 ASM_OBJ = $(ASM_SRC:.s=.o)
@@ -58,7 +60,7 @@ $(ISO): $(KERNEL)
 # Run in QEMU
 run: $(ISO)
 	@echo "Starting QEMU..."
-	@qemu-system-i386 -cdrom $(ISO)
+	@qemu-system-i386  -cdrom $(ISO)
 
 # Clean object files and kernel
 clean:
