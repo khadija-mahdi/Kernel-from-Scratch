@@ -17,10 +17,12 @@ KERNEL = kernel.bin
 ISO = kfs_1.iso
 
 # Source files
-ASM_SRC = boot/boot.s boot/gdt.s
-C_SRC = kernel/kernel.c kernel/vga.c\
-		lib/keyboard.c lib/keyboadEntries.c\
-		lib/print_stack.c lib/printk.c lib/gdt.c
+ASM_SRC_DIRS = boot
+ASM_SRC = $(foreach dir, $(ASM_SRC_DIRS), $(wildcard $(dir)/*.s))
+
+C_SRC_DIRS = kernel lib
+C_SRC = $(foreach dir, $(C_SRC_DIRS), $(wildcard $(dir)/*.c))
+
 
 # Object files
 ASM_OBJ = $(ASM_SRC:.s=.o)
@@ -30,15 +32,22 @@ OBJ = $(ASM_OBJ) $(C_OBJ)
 # Default target
 all: $(ISO)
 
-# Compile ASM files
+
+# # Compile ASM files
 boot/%.o: boot/%.s
 	@echo "Assembling $<..."
 	@$(AS) $(ASFLAGS) $< -o $@
 
-# Compile C files
-kernel/%.o: kernel/%.c
-	@echo "Compiling $<..."
-	@$(CC) $(CFLAGS) -c $< -o $@
+# Generate per-directory compile rules for C_SRC_DIRS
+define COMPILE_DIR_RULE
+$(1)/%.o: $(1)/%.c
+	@echo "Compiling $$<..."
+	@$(CC) $(CFLAGS) -c $$< -o $$@
+endef
+
+$(foreach dir,$(C_SRC_DIRS),$(eval $(call COMPILE_DIR_RULE,$(dir))))
+
+
 
 # Link kernel
 $(KERNEL): $(OBJ)
