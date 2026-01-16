@@ -80,6 +80,7 @@ clean:
 # Clean everything including ISO
 fclean: clean
 	@rm -f $(ISO)
+	@rm -f $(KERNEL)
 
 # Rebuild everything
 re: fclean all
