@@ -50,3 +50,14 @@ void print_stack_trace()
     
     printk_color(VGA_COLOR_CYAN, VGA_COLOR_BLACK, "-----------------------------------------------\n");
 }
+
+
+void stack_dump(){
+    uint32_t esp = get_esp();
+    printk_color(VGA_COLOR_YELLOW, VGA_COLOR_BLACK, "Stack Dump starting from ESP: %x\n", esp);
+    for(int i = 0; i < 7; i++){
+        uint32_t *addr = (uint32_t *)(esp + i * 4);
+        uint32_t value = *addr;
+        printk_color(VGA_COLOR_YELLOW, VGA_COLOR_BLACK, "Address: %x, Value: %x\n", addr, value);
+    }
+}

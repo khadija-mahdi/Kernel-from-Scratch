@@ -23,7 +23,7 @@ typedef uint32_t size_t;
 /*static */
  
 
-/* NULL pointer */
+/* NULL pointeappenr */
 #define NULL ((void *)0)
 
 /* Boolean type */

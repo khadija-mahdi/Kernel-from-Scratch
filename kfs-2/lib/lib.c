@@ -1,5 +1,5 @@
 #include "types.h"
-
+#include "../kernel/vga.h"
 int ft_atoi(const char *str)
 {
     long result = 0;

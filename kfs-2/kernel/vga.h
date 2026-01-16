@@ -4,6 +4,9 @@
 
 #include "../lib/types.h"
 
+#define LINE_START 3
+
+
 /* VGA color codes */
 enum vga_color
 {
@@ -39,7 +42,7 @@ enum vga_color
 extern short *const VGA_MEMORY;
 extern char screen[MAX_SCREENS][VGA_WIDTH * VGA_HEIGHT * 2];
 extern int current_screen;
-
+extern char key_buffer[256];
 extern char terminal_color;
 extern size_t screen_cursor_row[MAX_SCREENS];
 extern size_t screen_cursor_col[MAX_SCREENS];

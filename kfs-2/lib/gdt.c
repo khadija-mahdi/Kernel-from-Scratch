@@ -20,8 +20,8 @@ void init_gdt()
     gdt_set_gate(5, 0, 0xFFFFFFFF, 0xF2, 0xCF); // User data
     gdt_set_gate(6, 0, 0xFFFFFFFF, 0xF2, 0xCF); // User stack
     
-    printk_color(VGA_COLOR_CYAN, VGA_COLOR_BLACK, "GDT: Setting up GDT entries done.\n");
-    printk_color(VGA_COLOR_CYAN, VGA_COLOR_BLACK, "GDT: is at %x.\n", (uint32_t)gdt_entries);
+    // printk_color(VGA_COLOR_CYAN, VGA_COLOR_BLACK, "GDT: Setting up GDT entries done.\n");
+    // printk_color(VGA_COLOR_CYAN, VGA_COLOR_BLACK, "GDT: is at %x.\n", (uint32_t)gdt_entries);
     
     gdt_flush((uint32_t)&gdt_ptr);
 }
