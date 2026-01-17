@@ -1,5 +1,12 @@
-#include "types.h"
-#include "../kernel/vga.h"
+#include <lib/lib.h>
+#include <drivers/vga/vga.h>
+
+
+
+
+// #include <lib/lib.h>
+// #include <kernel/vga.h>
+// #include "../kernel/vga.h"
 int ft_atoi(const char *str)
 {
     long result = 0;

@@ -1,11 +1,17 @@
 
-#include "vga.h"
-#include "../lib/gdt.h"
-#include "../lib/print_stack.h"
+
+
+#include <drivers/vga/vga.h>
+#include <kernel/memory/gdt.h>
+#include <drivers/keyboard/keyboard.h>
+
+
+// #include "vga.h"
+// #include "../lib/gdt.h"
 
 void kernel_main(void)
 {
-    terminal_initialize();
+    terminal_initialize(false);
     init_gdt();
     // print_stack_trace();
     // stack_dump();
