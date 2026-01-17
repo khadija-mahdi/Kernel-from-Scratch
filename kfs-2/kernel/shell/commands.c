@@ -8,10 +8,10 @@ void reboot(){
     port_byte_out(0x64, 0xFE);
 }
 
-// void shutdown(){
-//     printk_color(VGA_COLOR_LIGHT_RED, VGA_COLOR_BLACK, "Shutting down...\n");
+void shutdown(){
+    printk_color(VGA_COLOR_LIGHT_RED, VGA_COLOR_BLACK, "Shutting down...\n");
 
-// }
+}
 
 void help(){
     printk_color(VGA_COLOR_LIGHT_CYAN, VGA_COLOR_BLACK, "Available commands:\n");
