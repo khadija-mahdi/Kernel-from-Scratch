@@ -136,7 +136,7 @@ void init_screens()
     }
 }
 
-void terminal_initialize()
+void terminal_initialize(bool clear)
 {
     init_screens();
     terminal_color = vga_entry_color(VGA_COLOR_WHITE, VGA_COLOR_BLACK);
@@ -148,7 +148,8 @@ void terminal_initialize()
             VGA_MEMORY[index] = vga_entry(' ', terminal_color);
         }
     }
-    printk_color(VGA_COLOR_LIGHT_GREEN, VGA_COLOR_BLACK, "> ");
+    if (!clear)
+        printk_color(VGA_COLOR_LIGHT_GREEN, VGA_COLOR_BLACK, "> ");
 }
 
 int get_offset(int col, int row)
@@ -209,9 +210,9 @@ void terminal_writestring(const char *str)
     }
 }
 
-void terminal_clear(void)
+void terminal_clear(bool clear)
 {
-    terminal_initialize();
+    terminal_initialize(clear);
 }
 
 void print_int(int num)
@@ -223,7 +224,7 @@ void print_int(int num)
 
 void remove_last_char()
 {
-    if (screen_cursor_col[current_screen] == 0 && strlen(key_buffer) == 0)
+    if (screen_cursor_col[current_screen] == 0 && strlen(key_buffer[current_screen]) == 0)
         return;
     screen_cursor_col[current_screen]--;
 

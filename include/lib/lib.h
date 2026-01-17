@@ -1,20 +1,20 @@
-/* lib/types.h - Basic type definitions */
+/* lib/lib.h - Basic type definitions */
 // #include "keyboard.h"
 
-#ifndef TYPES_H
-#define TYPES_H
+#ifndef LIB_H
+#define LIB_H
 
 // #include <lib/keyboard.h>
 
 #include <drivers/keyboard/keyboard.h>
 
-/* Unsigned integer types */
+/* Unsigned integer LIB */
 typedef unsigned char uint8_t;
 typedef unsigned short uint16_t;
 typedef unsigned int uint32_t;
 typedef unsigned long long uint64_t;
 
-/* Signed integer types */
+/* Signed integer LIB */
 typedef signed char int8_t;
 typedef signed short int16_t;
 typedef signed int int32_t;
@@ -45,4 +45,6 @@ unsigned int digit_count(int num);
 unsigned int strlen(const char *str);
 void printk(const char *format, ...);
 void printk_color(char fg, char bg, const char *format, ...);
-#endif /* TYPES_H */
+uint32_t get_esp();
+uint32_t get_ebp();
+#endif /* LIB_H */

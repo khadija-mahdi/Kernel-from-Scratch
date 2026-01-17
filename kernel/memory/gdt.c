@@ -3,7 +3,7 @@
 // #include "../kernel/vga.h"
 
 
-#include <kernel/init/gdt.h>
+#include <kernel/memory/gdt.h>
 #include <drivers/vga/vga.h>
 
 extern void gdt_flush(uint32_t);

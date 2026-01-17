@@ -2,8 +2,8 @@
 #ifndef VGA_H
 #define VGA_H
 
-// #include "../lib/types.h"
-#include <lib/types.h>
+// #include "../lib/lib.h"
+#include <lib/lib.h>
 #define LINE_START 3
 
 
@@ -42,15 +42,15 @@ enum vga_color
 extern short *const VGA_MEMORY;
 extern char screen[MAX_SCREENS][VGA_WIDTH * VGA_HEIGHT * 2];
 extern int current_screen;
-extern char key_buffer[256];
+extern char key_buffer[MAX_SCREENS][256];
 extern char terminal_color;
 extern size_t screen_cursor_row[MAX_SCREENS];
 extern size_t screen_cursor_col[MAX_SCREENS];
 
-void terminal_initialize(void);
+void terminal_initialize(bool clear);
 void terminal_putchar(char c);
 void terminal_writestring(const char *str);
-void terminal_clear(void);
+void terminal_clear(bool clear);
 void print_int(int num);
 void remove_last_char();
 void handle_key_release(char keycode);
@@ -59,6 +59,8 @@ void restoreScreen();
 void terminal_putentryat(char c, char color, size_t x, size_t y);
 void scroll(void);
 void set_cursor(int offset);
+void port_byte_out(unsigned short port, unsigned char data);
+
 
 /* helpers exposed for other modules */
 int get_offset(int col, int row);

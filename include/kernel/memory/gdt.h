@@ -1,5 +1,5 @@
 // #include "stdint.h"
-#include <lib/types.h>
+#include <lib/lib.h>
 #define GDT_ADDR 0x00000800
 
 struct  gdt_entry_struct

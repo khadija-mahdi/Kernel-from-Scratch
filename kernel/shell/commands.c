@@ -1,36 +1,39 @@
-#include <lib/types.h>
+#include <kernel/shell/shell.h>
 #include <drivers/vga/vga.h>
-#include <kernel/init/gdt.h>
+#include <lib/lib.h>
 
-
-
-// #include <kernel/vga.h>
-// // #include "../kernel/vga.h"
-// #include "gdt.h"
-
-
-
-// extern void gdt_flush(uint32_t);
-
-uint32_t get_esp()
-{
-    uint32_t esp;
-    __asm__ __volatile__ (
-        "movl %%esp, %0"
-        : "=r" (esp)
-    );
-    return esp;
+void reboot(){
+    printk_color(VGA_COLOR_LIGHT_RED, VGA_COLOR_BLACK, "Rebooting...\n");
+    // 0xFE to port 0x64
+    port_byte_out(0x64, 0xFE);
 }
 
-uint32_t get_ebp()  // ← Add this function
-{
-    uint32_t ebp;
-    __asm__ __volatile__ (
-        "movl %%ebp, %0"
-        : "=r" (ebp)
-    );
-    return ebp;
+void shutdown(){
+    printk_color(VGA_COLOR_LIGHT_RED, VGA_COLOR_BLACK, "Shutting down...\n");
+
 }
+
+void help(){
+    printk_color(VGA_COLOR_LIGHT_CYAN, VGA_COLOR_BLACK, "Available commands:\n");
+    printk_color(VGA_COLOR_LIGHT_CYAN, VGA_COLOR_BLACK, " - reboot: Reboot the system\n");
+    printk_color(VGA_COLOR_LIGHT_CYAN, VGA_COLOR_BLACK, " - shutdown: Shutdown the system\n");
+    printk_color(VGA_COLOR_LIGHT_CYAN, VGA_COLOR_BLACK, " - help: Display this help message\n");
+    printk_color(VGA_COLOR_LIGHT_CYAN, VGA_COLOR_BLACK, " - halt: Halt the system\n");
+    printk_color(VGA_COLOR_LIGHT_CYAN, VGA_COLOR_BLACK, " - clear: Clear the screen\n");
+    printk_color(VGA_COLOR_LIGHT_CYAN, VGA_COLOR_BLACK, " -stack_trace: Print the current stack trace\n");
+    printk_color(VGA_COLOR_LIGHT_CYAN, VGA_COLOR_BLACK, " -stack_dump: Dump the current stack contents\n");
+}
+
+void halt(){
+    printk_color(VGA_COLOR_LIGHT_RED, VGA_COLOR_BLACK, "Halting the system...\n");
+    asm volatile ("hlt");
+}
+
+void clear_screen(){
+    terminal_clear(true);
+    // printk_color(VGA_COLOR_LIGHT_GREEN, VGA_COLOR_BLACK, "> ");
+}
+
 
 void print_stack_trace()
 {
