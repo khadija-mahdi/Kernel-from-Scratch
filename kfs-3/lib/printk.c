@@ -40,41 +40,6 @@ static void itoa_hex(unsigned int num, char *buf)
     }
 }
 
-void printk(const char *format, ...)
-{
-    va_list args;
-    va_start(args, format);
-    
-    void print_hex(unsigned int num)
-    {
-        char buf[9];
-        itoa_hex(num, buf);
-        
-        int start = 0;
-        while (start < 7 && buf[start] == '0') start++;
-        terminal_writestring(&buf[start]);
-    }
-    
-    for (size_t i = 0; format[i] != '\0'; i++)
-    {
-        if (format[i] == '%') {
-            i++;
-            switch (format[i])
-            {
-                case 'd': print_int(va_arg(args, int)); break;
-                case 'x': print_hex(va_arg(args, unsigned int)); break; 
-                case 's': terminal_writestring(va_arg(args, char*)); break;
-                case 'c': terminal_putchar((char)va_arg(args, int)); break;
-                case '%': terminal_putchar('%'); break;
-                default: terminal_putchar(format[i]); break;
-            }
-        } else {
-            terminal_putchar(format[i]);
-        }
-    }
-    va_end(args);
-}
-
 void printk_color(char fg, char bg, const char *format, ...)
 {
     char color = vga_entry_color(fg, bg);

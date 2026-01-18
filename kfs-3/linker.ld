@@ -1,27 +1,41 @@
+
+ENTRY(_start)
 SECTIONS
 {
-    . = 0x00000800;
-    .gdt : {
-        gdt_entries = .;
-        *(.gdt)
+    . = 0x00100000;
+
+    .multiboot_header  ALIGN(4K): {
+        *(.multiboot_header)
     }
-    
-    . = 0x00100000;        /* Kernel starts at 1MB */
-    
-    .text : {
-        *(.multiboot)
+
+    .note.gnu.build-id ALIGN(4K): {
+        *(.note.gnu.build-id)
+    }
+
+    .boot ALIGN(4K) : {
+        *(.boot)
+    }
+
+    . += 0xC0000000;
+
+    .text ALIGN(4K): AT(ADDR(.text) - 0xC0000000){
         *(.text)
     }
-    
-    .rodata : {
+
+    .rodata ALIGN(4K): AT(ADDR(.rodata) - 0xC0000000){
         *(.rodata)
     }
-    
-    .data : {
+
+    .data ALIGN(4K): AT(ADDR(.data) - 0xC0000000){
         *(.data)
     }
-    
-    .bss : {
+
+    .bss ALIGN(4K): AT(ADDR(.bss) - 0xC0000000){
+        *(COMMON)
         *(.bss)
     }
+
+    _kernel_end = .;
+
 }
+
