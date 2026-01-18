@@ -8,20 +8,22 @@ SECTIONS
     
     . = 0x00100000;        /* Kernel starts at 1MB */
     
-    .text : {
+    .text ALIGN(4K) : {
+        *(.multiboot_header)
         *(.multiboot)
         *(.text)
     }
     
-    .rodata : {
+    .rodata ALIGN(4K) : {
         *(.rodata)
     }
     
-    .data : {
+    .data ALIGN(4K) : {
         *(.data)
     }
     
-    .bss : {
+    .bss ALIGN(4K) : {
         *(.bss)
+        *(COMMON)
     }
 }

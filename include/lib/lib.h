@@ -43,7 +43,7 @@ typedef enum
 void itoa(int num, char *number);
 unsigned int digit_count(int num);
 unsigned int strlen(const char *str);
-void printk(const char *format, ...);
+// void printk(const char *format, ...);
 void printk_color(char fg, char bg, const char *format, ...);
 uint32_t get_esp();
 uint32_t get_ebp();
