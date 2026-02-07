@@ -4,7 +4,7 @@
 #include <drivers/vga/vga.h>
 
 /* Definitions for globals declared in vga.h */
-short *const VGA_MEMORY = (short *)0xB8000;
+uint16_t *const VGA_MEMORY = (uint16_t *const)0xC00B8000;
 char screen[MAX_SCREENS][VGA_WIDTH * VGA_HEIGHT * 2];
 int current_screen = 0;
 

@@ -39,7 +39,7 @@ enum vga_color
 #define VGA_OFFSET_HIGH 0x0e
 #define MAX_SCREENS 3
 
-extern short *const VGA_MEMORY;
+extern uint16_t *const VGA_MEMORY;
 extern char screen[MAX_SCREENS][VGA_WIDTH * VGA_HEIGHT * 2];
 extern int current_screen;
 extern char key_buffer[MAX_SCREENS][256];

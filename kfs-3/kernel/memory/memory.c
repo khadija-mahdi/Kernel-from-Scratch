@@ -1,6 +1,6 @@
 #include "stdint.h"
-#include "drivers/vga/vga.h"
-#include "memory.h"
+#include <drivers/vga/vga.h>
+#include <kernel/memory/memory.h>
 
 static uint32_t pageFrameMin;
 static uint32_t pageFrameMax;
