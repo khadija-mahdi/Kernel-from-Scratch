@@ -1,9 +1,6 @@
 #include <lib/lib.h>
 #include <drivers/vga/vga.h>
 
-
-
-
 // #include <lib/lib.h>
 // #include <kernel/vga.h>
 // #include "../kernel/vga.h"
@@ -31,4 +28,11 @@ int ft_atoi(const char *str)
     return (int)(result * sign);
 }
 
-
+void memset(void *dest, char val, uint32_t count)
+{
+    char *temp = (char *)dest;
+    for (; count != 0; count--)
+    {
+        *temp++ = val;
+    }
+}

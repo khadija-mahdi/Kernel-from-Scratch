@@ -21,13 +21,15 @@ typedef signed int int32_t;
 typedef signed long long int64_t;
 
 
+
 /* Size type */
 typedef uint32_t size_t;
 
 /*static */
- 
+
 
 /* NULL pointeappenr */
+#define CEIL_DIV(a,b) (((a + b) - 1)/b)
 #define NULL ((void *)0)
 
 /* Boolean type */
@@ -47,4 +49,7 @@ void printk(const char *format, ...);
 void printk_color(char fg, char bg, const char *format, ...);
 uint32_t get_esp();
 uint32_t get_ebp();
+void memset(void *dest, char val, uint32_t count);
+
+
 #endif /* LIB_H */
