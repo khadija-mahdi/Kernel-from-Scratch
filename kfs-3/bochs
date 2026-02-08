@@ -1,0 +1,5 @@
+romimage: file=/home/kmahdi/Desktop/Kernel-from-Scratch/kfs-3/Bochs/bochs/bios/BIOS-bochs-latest
+vgaromimage: file=/home/kmahdi/Desktop/Kernel-from-Scratch/kfs-3/Bochs/bochs/bios/VGABIOS-lgpl/VGABIOS-lgpl-latest.bin
+ata0-slave: type=cdrom, path=kfs.iso, status=inserted
+boot:cdrom
+display_library: x, options = "gui_debug"

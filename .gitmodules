@@ -1,0 +1,3 @@
+[submodule "kfs-3/kfs-3/bochs"]
+	path = kfs-3/kfs-3/bochs
+	url = https://github.com/bochs-emu/Bochs.git
