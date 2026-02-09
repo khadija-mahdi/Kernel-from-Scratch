@@ -131,7 +131,7 @@ uint32_t pmmAllocPageFrame(){
                 physicalMemoryBitmap[b] = byte;
                 totalAlloc++;
 
-                uint32_t addr = (b*8*i) * 0x1000;
+                uint32_t addr = (b*8 + i) * 0x1000;
                 return addr;
             }
         }
