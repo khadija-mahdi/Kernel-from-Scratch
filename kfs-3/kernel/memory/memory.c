@@ -134,7 +134,7 @@ uint32_t pmmAllocPageFrame(){
                 uint32_t addr = (b*8 + i) * 0x1000;
                 return addr;
             }
-        }
+        }// Initialize kernel heap with 1MB size
         
     }
 
@@ -148,8 +148,8 @@ void initMemory(uint32_t memHigh, uint32_t physicalAllocStart){
     invalidate(0);
     initial_page_dir[1023] = ((uint32_t) initial_page_dir - KERNEL_START) | PAGE_FLAG_PRESENT | PAGE_FLAG_WRITE;
     invalidate(0xFFFFF000);
-
     pmm_init(physicalAllocStart, memHigh);
+
     memset(pageDirs, 0, 0x1000 * NUM_PAGES_DIRS);
     memset(pageDirUsed, 0, NUM_PAGES_DIRS);
 }
