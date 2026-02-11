@@ -45,11 +45,11 @@ typedef enum
 void itoa(int num, char *number);
 unsigned int digit_count(int num);
 unsigned int strlen(const char *str);
-void printk(const char *format, ...);
 void printk_color(char fg, char bg, const char *format, ...);
 uint32_t get_esp();
 uint32_t get_ebp();
 void memset(void *dest, char val, uint32_t count);
+// int strcmp(const char *s1, const char *s2);
 
 
 #endif /* LIB_H */

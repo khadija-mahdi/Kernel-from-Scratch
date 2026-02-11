@@ -39,7 +39,7 @@ void *vmalloc(uint32_t size)
     for (uint32_t i = 0; i < numPages; i++) {
         uint32_t phys = pmmAllocPageFrame();
         if (phys == 0) {
-            kernel_panic("vmalloc: out of physical memory");
+            kpanic(PANIC_OOM, "vmalloc: out of physical memory");
             return NULL;
         }
         memMapPage(vaddr + i * 0x1000, phys, PAGE_FLAG_WRITE);
@@ -48,7 +48,7 @@ void *vmalloc(uint32_t size)
     /* Record the region */
     vmalloc_region_t *region = (vmalloc_region_t *)kmalloc(sizeof(vmalloc_region_t));
     if (!region) {
-        kernel_panic("vmalloc: kmalloc failed for region descriptor");
+        kpanic(PANIC_OOM, "vmalloc: kmalloc failed for region descriptor");
         return NULL;
     }
     region->virtualAddr = vaddr;

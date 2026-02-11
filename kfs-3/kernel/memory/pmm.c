@@ -42,7 +42,7 @@ uint32_t pmmAllocPageFrame(void)
         }
     }
 
-    kernel_panic("PMM: out of physical page frames");
+    kpanic(PANIC_OOM, "PMM: out of physical page frames");
     return 0;
 }
 

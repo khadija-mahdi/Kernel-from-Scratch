@@ -8,9 +8,14 @@
 #define BLOCK_USED(hdr) ((hdr) & 1u)
 #define HEADER_SIZE sizeof(uint32_t)
 
-static uint32_t heapStart;
-static uint32_t heapSize;
+// Make these accessible to heap_map command
+uint32_t heapStart;
+uint32_t heapSize;
 static bool kmallocInitialized = false;
+
+uint32_t userHeapStart;
+uint32_t userHeapSize;
+// static bool umallocInitialized = false;
 
 /* ── Init ───────────────────────────────────────────────────── */
 
@@ -21,12 +26,12 @@ void kmallocInit(uint32_t initialHeapSize)
     kmallocInitialized = true;
 
     changeHeapSize(initialHeapSize);
+    // umallocInit();
 
     /* Sentinel: size=0 marks end of block list */
     *((uint32_t *)heapStart) = 0;
 }
 
-/* ── Grow the heap by mapping more pages ────────────────────── */
 
 void changeHeapSize(int newSize)
 {

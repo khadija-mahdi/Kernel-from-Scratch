@@ -8,7 +8,7 @@ LD = ld
 # Flags
 ASFLAGS = -f elf32
 CFLAGS = -g -I./include -m32 -ffreestanding -fno-builtin -fno-exceptions \
-         -fno-stack-protector -nostdlib -nodefaultlibs \
+         -fno-stack-protector -fno-omit-frame-pointer -nostdlib -nodefaultlibs \
          -Wall -Wextra -O2
 LDFLAGS = -m elf_i386 -T linker.ld
 

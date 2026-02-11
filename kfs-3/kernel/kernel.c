@@ -70,12 +70,12 @@ void kernel_main(uint32_t magic,  multiboot_info_t *bootInfo)
     printk_color(VGA_COLOR_CYAN, VGA_COLOR_BLACK, "Point: (%d, %d)\n", p->x, p->y);
     printk_color(VGA_COLOR_LIGHT_GREEN, VGA_COLOR_BLACK, "Addresses: str=%x, num=%x, arr=%x, p=%x\n", (uint32_t)str, (uint32_t)num, (uint32_t)arr, (uint32_t)p);
 
-    kfree(str);
-    kfree(num);
-    kfree(arr);
-    kfree(p);
-
-    keyboard_input();
+    // kfree(str);
+    // kfree(num);
+    // kfree(arr);
+    // kfree(p);
+    
+    check_stack_overflow();
     keyboard_input();
     
     for(;;);

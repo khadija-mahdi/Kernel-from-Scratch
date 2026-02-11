@@ -2,6 +2,7 @@
 #include <kernel/memory/pmm.h>
 #include <kernel/memory/vmm.h>
 #include <kernel/memory/vmalloc.h>
+#include <kernel/memory/panic.h>
 
 void initMemory(uint32_t memHigh, uint32_t physicalAllocStart)
 {
@@ -20,4 +21,18 @@ void initMemory(uint32_t memHigh, uint32_t physicalAllocStart)
     pmm_init(physicalAllocStart, memHigh);
     vmmInit();
     vmallocInit();
+}
+
+
+void check_stack_overflow(void) {
+    uint32_t esp;
+    asm volatile("mov %%esp, %0" : "=r"(esp));
+    
+    if (esp < 0xC010A000) {  // Below stack bottom
+        kpanic(PANIC_STACK, "Stack overflow detected");
+    }
+    
+    if (esp > 0xC012A000) {  // Above stack top
+        kpanic(PANIC_STACK, "Stack pointer corrupted");
+    }
 }
