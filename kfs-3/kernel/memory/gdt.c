@@ -1,8 +1,3 @@
-// #include "gdt.h"
-// #include <kernel/vga.h>
-// #include "../kernel/vga.h"
-
-
 #include <kernel/memory/gdt.h>
 #include <drivers/vga/vga.h>
 
@@ -14,7 +9,7 @@ struct gdt_ptr_struct gdt_ptr;
 void init_gdt()
 {
     gdt_ptr.limit = (sizeof(struct gdt_entry_struct) * 7) - 1;
-    gdt_ptr.base = (uint32_t)gdt_entries; // Use the actual array address
+    gdt_ptr.base = (uint32_t)gdt_entries;
     
     gdt_set_gate(0, 0, 0, 0, 0);                // Null segment
     gdt_set_gate(1, 0, 0xFFFFFFFF, 0x9A, 0xCF); // Kernel Code
