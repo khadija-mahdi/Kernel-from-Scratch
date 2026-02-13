@@ -1,0 +1,1591 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VGA Text Mode</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=Share+Tech+Mono&family=Orbitron:wght@400;500;600;700&display=swap');
+
+:root {
+  --bg-primary: #0a0a0f;
+  --bg-secondary: #12121a;
+  --bg-tertiary: #1a1a25;
+  --phosphor: #33ff33;
+  --phosphor-dim: #1a8a1a;
+  --phosphor-glow: rgba(51, 255, 51, 0.3);
+  --amber: #ffb000;
+  --amber-dim: #805800;
+  --cyan: #00d4ff;
+  --magenta: #ff00aa;
+  --text-primary: #e0e0e0;
+  --text-secondary: #888;
+  --border: #2a2a35;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'IBM Plex Mono', monospace;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  min-height: 100vh;
+  overflow-x: hidden;
+  position: relative;
+}
+
+body::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: 
+    repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(0, 0, 0, 0.15) 2px,
+      rgba(0, 0, 0, 0.15) 4px
+    );
+  pointer-events: none;
+  z-index: 1000;
+}
+
+.container {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.section {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  margin-bottom: 20px;
+  overflow: hidden;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+}
+
+.section-header {
+  background: linear-gradient(90deg, var(--bg-tertiary), transparent);
+  padding: 12px 20px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.section-header h2 {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  color: var(--phosphor);
+  text-shadow: 0 0 10px var(--phosphor-glow);
+}
+
+.section-content {
+  padding: 20px;
+}
+
+/* Architecture Diagram */
+.architecture-container {
+  position: relative;
+  height: 280px;
+}
+
+.arch-box {
+  position: absolute;
+  background: var(--bg-tertiary);
+  border: 2px solid var(--border);
+  border-radius: 8px;
+  padding: 15px;
+  text-align: center;
+  transition: all 0.3s ease;
+}
+
+.arch-box:hover {
+  border-color: var(--phosphor);
+  box-shadow: 0 0 20px var(--phosphor-glow);
+  transform: translateY(-2px);
+}
+
+.arch-box .icon {
+  font-size: 28px;
+  margin-bottom: 8px;
+}
+
+.arch-box .label {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 11px;
+  color: var(--text-secondary);
+  margin-bottom: 4px;
+}
+
+.arch-box .name {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--amber);
+}
+
+.arch-box .detail {
+  font-size: 10px;
+  color: var(--text-secondary);
+  margin-top: 6px;
+}
+
+.arch-line {
+  position: absolute;
+  background: var(--phosphor-dim);
+  transition: background 0.3s ease;
+}
+
+.arch-line.active {
+  background: var(--phosphor);
+  box-shadow: 0 0 10px var(--phosphor-glow);
+}
+
+.arch-arrow {
+  position: absolute;
+  color: var(--phosphor-dim);
+  font-size: 14px;
+  transition: color 0.3s ease;
+}
+
+.arch-arrow.active {
+  color: var(--phosphor);
+  text-shadow: 0 0 10px var(--phosphor-glow);
+}
+
+/* Memory Layout */
+.memory-layout {
+  display: grid;
+  grid-template-columns: 200px 1fr;
+  gap: 20px;
+}
+
+.address-bar {
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 15px;
+}
+
+.address-range {
+  margin-bottom: 15px;
+  padding-bottom: 15px;
+  border-bottom: 1px solid var(--border);
+}
+
+.address-range:last-child {
+  margin-bottom: 0;
+  padding-bottom: 0;
+  border-bottom: none;
+}
+
+.address-range .addr {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 12px;
+  color: var(--cyan);
+}
+
+.address-range .desc {
+  font-size: 11px;
+  color: var(--text-secondary);
+  margin-top: 4px;
+}
+
+.memory-grid-container {
+  position: relative;
+}
+
+.memory-minimap {
+  display: grid;
+  grid-template-columns: repeat(80, 1fr);
+  gap: 1px;
+  background: var(--bg-tertiary);
+  padding: 10px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+}
+
+.minimap-cell {
+  aspect-ratio: 1;
+  background: var(--bg-primary);
+  border-radius: 1px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  min-width: 4px;
+  min-height: 4px;
+}
+
+.minimap-cell:hover {
+  background: var(--phosphor);
+  box-shadow: 0 0 5px var(--phosphor-glow);
+}
+
+.minimap-cell.highlighted {
+  background: var(--amber);
+}
+
+.grid-info {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 10px;
+  font-size: 11px;
+  color: var(--text-secondary);
+}
+
+/* Cell Structure */
+.cell-structure {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 30px;
+}
+
+.byte-display {
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 20px;
+}
+
+.byte-display h3 {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 12px;
+  color: var(--text-secondary);
+  margin-bottom: 15px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.bits-container {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 15px;
+}
+
+.bit {
+  width: 40px;
+  height: 50px;
+  background: var(--bg-primary);
+  border: 2px solid var(--border);
+  border-radius: 4px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  user-select: none;
+}
+
+.bit:hover {
+  border-color: var(--phosphor);
+}
+
+.bit.active {
+  background: var(--phosphor);
+  border-color: var(--phosphor);
+  color: var(--bg-primary);
+  box-shadow: 0 0 15px var(--phosphor-glow);
+}
+
+.bit .value {
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.bit .index {
+  font-size: 9px;
+  color: var(--text-secondary);
+  margin-top: 2px;
+}
+
+.bit.active .index {
+  color: var(--bg-secondary);
+}
+
+.byte-info {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+}
+
+.byte-info-item {
+  background: var(--bg-primary);
+  padding: 10px;
+  border-radius: 4px;
+}
+
+.byte-info-item .label {
+  font-size: 10px;
+  color: var(--text-secondary);
+  margin-bottom: 4px;
+}
+
+.byte-info-item .value {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 14px;
+  color: var(--cyan);
+}
+
+/* Color Palette */
+.color-section {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+.color-grid {
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  gap: 8px;
+}
+
+.color-swatch {
+  aspect-ratio: 1;
+  border-radius: 6px;
+  cursor: pointer;
+  position: relative;
+  transition: all 0.2s ease;
+  border: 2px solid transparent;
+}
+
+.color-swatch:hover {
+  transform: scale(1.1);
+  z-index: 10;
+}
+
+.color-swatch.selected {
+  border-color: white;
+  box-shadow: 0 0 15px rgba(255, 255, 255, 0.5);
+}
+
+.color-swatch .number {
+  position: absolute;
+  bottom: 2px;
+  right: 4px;
+  font-size: 10px;
+  font-weight: 700;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
+}
+
+.color-info-panel {
+  background: var(--bg-tertiary);
+  border-radius: 8px;
+  padding: 20px;
+  border: 1px solid var(--border);
+}
+
+.selected-colors {
+  display: flex;
+  gap: 20px;
+  margin-bottom: 20px;
+}
+
+.color-preview {
+  flex: 1;
+  text-align: center;
+}
+
+.color-preview-box {
+  width: 60px;
+  height: 60px;
+  border-radius: 8px;
+  margin: 0 auto 10px;
+  border: 2px solid var(--border);
+}
+
+.color-preview .label {
+  font-size: 11px;
+  color: var(--text-secondary);
+}
+
+.attribute-byte-preview {
+  background: var(--bg-primary);
+  border-radius: 6px;
+  padding: 15px;
+  text-align: center;
+}
+
+.attribute-byte-preview .label {
+  font-size: 11px;
+  color: var(--text-secondary);
+  margin-bottom: 8px;
+}
+
+.attribute-binary {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 20px;
+  letter-spacing: 2px;
+}
+
+.attribute-binary .bg-bits {
+  color: var(--magenta);
+}
+
+.attribute-binary .fg-bits {
+  color: var(--cyan);
+}
+
+/* Live Demo */
+.demo-container {
+  display: grid;
+  grid-template-columns: 1fr 300px;
+  gap: 20px;
+}
+
+.vga-screen {
+  background: #000;
+  border-radius: 8px;
+  padding: 20px;
+  position: relative;
+  overflow: hidden;
+}
+
+.vga-screen::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: radial-gradient(ellipse at center, transparent 0%, rgba(0, 0, 0, 0.4) 100%);
+  pointer-events: none;
+}
+
+.vga-screen::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 1px,
+    rgba(0, 0, 0, 0.2) 1px,
+    rgba(0, 0, 0, 0.2) 2px
+  );
+  pointer-events: none;
+}
+
+.screen-content {
+  display: grid;
+  grid-template-columns: repeat(40, 1fr);
+  gap: 0;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 12px;
+  line-height: 1;
+  position: relative;
+  z-index: 1;
+}
+
+.screen-char {
+  width: 12px;
+  height: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.1s ease;
+}
+
+.screen-char:hover {
+  outline: 1px solid var(--phosphor);
+}
+
+.screen-char.cursor {
+  animation: blink 0.5s infinite;
+}
+
+@keyframes blink {
+  0%, 50% { background: var(--phosphor) !important; color: #000 !important; }
+  51%, 100% { background: transparent; }
+}
+
+.demo-controls {
+  background: var(--bg-tertiary);
+  border-radius: 8px;
+  padding: 20px;
+  border: 1px solid var(--border);
+}
+
+.control-group {
+  margin-bottom: 20px;
+}
+
+.control-group:last-child {
+  margin-bottom: 0;
+}
+
+.control-group label {
+  display: block;
+  font-size: 11px;
+  color: var(--text-secondary);
+  margin-bottom: 8px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.control-group input[type="text"] {
+  width: 100%;
+  background: var(--bg-primary);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 10px;
+  color: var(--text-primary);
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 14px;
+}
+
+.control-group input[type="text"]:focus {
+  outline: none;
+  border-color: var(--phosphor);
+  box-shadow: 0 0 10px var(--phosphor-glow);
+}
+
+.mini-palette {
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  gap: 4px;
+}
+
+.mini-swatch {
+  aspect-ratio: 1;
+  border-radius: 3px;
+  cursor: pointer;
+  border: 2px solid transparent;
+  transition: all 0.15s ease;
+}
+
+.mini-swatch:hover {
+  transform: scale(1.15);
+}
+
+.mini-swatch.selected {
+  border-color: white;
+}
+
+.code-output {
+  background: var(--bg-primary);
+  border-radius: 6px;
+  padding: 15px;
+  margin-top: 15px;
+}
+
+.code-output pre {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 11px;
+  color: var(--phosphor);
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+
+/* Flow Animation */
+.flow-container {
+  position: relative;
+  height: 200px;
+  overflow: hidden;
+}
+
+.flow-stage {
+  position: absolute;
+  background: var(--bg-tertiary);
+  border: 2px solid var(--border);
+  border-radius: 8px;
+  padding: 15px 20px;
+  text-align: center;
+  transition: all 0.3s ease;
+}
+
+.flow-stage.active {
+  border-color: var(--phosphor);
+  box-shadow: 0 0 25px var(--phosphor-glow);
+}
+
+.flow-stage .num {
+  position: absolute;
+  top: -10px;
+  left: -10px;
+  width: 24px;
+  height: 24px;
+  background: var(--amber);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--bg-primary);
+}
+
+.flow-stage .title {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 11px;
+  color: var(--phosphor);
+  margin-bottom: 5px;
+}
+
+.flow-stage .desc {
+  font-size: 10px;
+  color: var(--text-secondary);
+}
+
+.flow-data {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  background: var(--amber);
+  border-radius: 50%;
+  box-shadow: 0 0 15px var(--amber);
+  opacity: 0;
+}
+
+.play-btn {
+  position: absolute;
+  bottom: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--phosphor);
+  color: var(--bg-primary);
+  border: none;
+  padding: 8px 20px;
+  border-radius: 4px;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.play-btn:hover {
+  box-shadow: 0 0 20px var(--phosphor-glow);
+  transform: translateX(-50%) translateY(-2px);
+}
+
+/* Navigation */
+.nav-tabs {
+  display: flex;
+  gap: 5px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.nav-tab {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  padding: 10px 20px;
+  border-radius: 6px;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 12px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.nav-tab:hover {
+  border-color: var(--phosphor-dim);
+  color: var(--text-primary);
+}
+
+.nav-tab.active {
+  background: var(--bg-tertiary);
+  border-color: var(--phosphor);
+  color: var(--phosphor);
+  box-shadow: 0 0 15px var(--phosphor-glow);
+}
+
+.tab-content {
+  display: none;
+}
+
+.tab-content.active {
+  display: block;
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Indicator LED */
+.led {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--phosphor);
+  box-shadow: 0 0 10px var(--phosphor-glow);
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+/* Position Calculator */
+.calc-container {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 15px;
+  align-items: end;
+}
+
+.calc-field input {
+  width: 100%;
+  background: var(--bg-primary);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 12px;
+  color: var(--cyan);
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 16px;
+  text-align: center;
+}
+
+.calc-field input:focus {
+  outline: none;
+  border-color: var(--cyan);
+  box-shadow: 0 0 10px rgba(0, 212, 255, 0.3);
+}
+
+.calc-result {
+  background: var(--bg-primary);
+  border-radius: 4px;
+  padding: 15px;
+  margin-top: 15px;
+  text-align: center;
+}
+
+.calc-result .formula {
+  font-size: 12px;
+  color: var(--text-secondary);
+  margin-bottom: 8px;
+}
+
+.calc-result .result {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 18px;
+  color: var(--phosphor);
+}
+
+@media (prefers-color-scheme: light) {
+  :root {
+    --bg-primary: #f0f0f5;
+    --bg-secondary: #ffffff;
+    --bg-tertiary: #e8e8f0;
+    --text-primary: #1a1a25;
+    --text-secondary: #666;
+    --border: #d0d0d8;
+    --phosphor: #00aa00;
+    --phosphor-dim: #006600;
+    --phosphor-glow: rgba(0, 170, 0, 0.3);
+  }
+  
+  body::before {
+    background: none;
+  }
+  
+  .vga-screen {
+    background: #1a1a25;
+  }
+}
+</style>
+</head>
+<body>
+
+<div class="container">
+  <nav class="nav-tabs" role="tablist">
+    <button class="nav-tab active" data-tab="overview" role="tab" aria-selected="true">Overview</button>
+    <button class="nav-tab" data-tab="memory" role="tab" aria-selected="false">Memory Layout</button>
+    <button class="nav-tab" data-tab="structure" role="tab" aria-selected="false">Cell Structure</button>
+    <button class="nav-tab" data-tab="colors" role="tab" aria-selected="false">Color System</button>
+    <button class="nav-tab" data-tab="flow" role="tab" aria-selected="false">Data Flow</button>
+    <button class="nav-tab" data-tab="demo" role="tab" aria-selected="false">Live Demo</button>
+  </nav>
+
+  <!-- Overview Tab -->
+  <div id="overview" class="tab-content active">
+    <div class="section">
+      <div class="section-header">
+        <span class="led"></span>
+        <h2>VGA Hardware Architecture</h2>
+      </div>
+      <div class="section-content">
+        <div class="architecture-container" id="arch-diagram"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Memory Layout Tab -->
+  <div id="memory" class="tab-content">
+    <div class="section">
+      <div class="section-header">
+        <span class="led"></span>
+        <h2>Memory-Mapped Video Buffer</h2>
+      </div>
+      <div class="section-content">
+        <div class="memory-layout">
+          <div class="address-bar">
+            <div class="address-range">
+              <div class="addr">0xB8000</div>
+              <div class="desc">Start of VGA text buffer</div>
+            </div>
+            <div class="address-range">
+              <div class="addr">0xB8FA0</div>
+              <div class="desc">End (80×25×2 bytes)</div>
+            </div>
+            <div class="address-range">
+              <div class="addr" style="color: var(--amber);">4000 bytes</div>
+              <div class="desc">Total buffer size</div>
+            </div>
+            <div class="address-range">
+              <div class="addr" style="color: var(--magenta);">2000 cells</div>
+              <div class="desc">80 cols × 25 rows</div>
+            </div>
+          </div>
+          <div class="memory-grid-container">
+            <div class="memory-minimap" id="memory-minimap"></div>
+            <div class="grid-info">
+              <span>← Column 0</span>
+              <span id="cell-info">Hover over a cell</span>
+              <span>Column 79 →</span>
+            </div>
+            <div class="calc-container" style="margin-top: 20px;">
+              <div class="calc-field">
+                <label>Row (0-24)</label>
+                <input type="number" id="calc-row" min="0" max="24" value="0" aria-label="Row number">
+              </div>
+              <div class="calc-field">
+                <label>Column (0-79)</label>
+                <input type="number" id="calc-col" min="0" max="79" value="0" aria-label="Column number">
+              </div>
+              <div class="calc-field">
+                <label>Cell Index</label>
+                <input type="text" id="calc-index" readonly value="0" aria-label="Cell index">
+              </div>
+            </div>
+            <div class="calc-result">
+              <div class="formula">Address = 0xB8000 + (row × 80 + col) × 2</div>
+              <div class="result" id="calc-address">0xB8000</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Cell Structure Tab -->
+  <div id="structure" class="tab-content">
+    <div class="section">
+      <div class="section-header">
+        <span class="led"></span>
+        <h2>2-Byte Cell Format</h2>
+      </div>
+      <div class="section-content">
+        <div class="cell-structure">
+          <div class="byte-display">
+            <h3>Character Byte (Even Address)</h3>
+            <div class="bits-container" id="char-bits"></div>
+            <div class="byte-info">
+              <div class="byte-info-item">
+                <div class="label">Binary</div>
+                <div class="value" id="char-binary">01000001</div>
+              </div>
+              <div class="byte-info-item">
+                <div class="label">Hex</div>
+                <div class="value" id="char-hex">0x41</div>
+              </div>
+              <div class="byte-info-item">
+                <div class="label">Decimal</div>
+                <div class="value" id="char-dec">65</div>
+              </div>
+              <div class="byte-info-item">
+                <div class="label">Character</div>
+                <div class="value" id="char-display" style="font-size: 24px;">A</div>
+              </div>
+            </div>
+          </div>
+          <div class="byte-display">
+            <h3>Attribute Byte (Odd Address)</h3>
+            <div class="bits-container" id="attr-bits"></div>
+            <div class="byte-info">
+              <div class="byte-info-item">
+                <div class="label">Background (bits 7-4)</div>
+                <div class="value" id="attr-bg">0 (Black)</div>
+              </div>
+              <div class="byte-info-item">
+                <div class="label">Foreground (bits 3-0)</div>
+                <div class="value" id="attr-fg">7 (Light Gray)</div>
+              </div>
+              <div class="byte-info-item">
+                <div class="label">Hex Value</div>
+                <div class="value" id="attr-hex">0x07</div>
+              </div>
+              <div class="byte-info-item">
+                <div class="label">Preview</div>
+                <div class="value" id="attr-preview" style="padding: 5px 10px; border-radius: 4px;">A</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Colors Tab -->
+  <div id="colors" class="tab-content">
+    <div class="section">
+      <div class="section-header">
+        <span class="led"></span>
+        <h2>VGA 16-Color Palette</h2>
+      </div>
+      <div class="section-content">
+        <div class="color-section">
+          <div>
+            <label style="display: block; margin-bottom: 10px; font-size: 11px; color: var(--text-secondary);">FOREGROUND COLOR (4 bits)</label>
+            <div class="color-grid" id="fg-palette"></div>
+            <label style="display: block; margin: 20px 0 10px; font-size: 11px; color: var(--text-secondary);">BACKGROUND COLOR (4 bits)</label>
+            <div class="color-grid" id="bg-palette"></div>
+          </div>
+          <div class="color-info-panel">
+            <div class="selected-colors">
+              <div class="color-preview">
+                <div class="color-preview-box" id="fg-preview"></div>
+                <div class="label">Foreground</div>
+              </div>
+              <div class="color-preview">
+                <div class="color-preview-box" id="bg-preview"></div>
+                <div class="label">Background</div>
+              </div>
+            </div>
+            <div class="attribute-byte-preview">
+              <div class="label">Attribute Byte</div>
+              <div class="attribute-binary">
+                <span class="bg-bits" id="bg-bits-display">0000</span>
+                <span class="fg-bits" id="fg-bits-display">0111</span>
+              </div>
+              <div style="margin-top: 10px; font-family: 'Share Tech Mono', monospace; color: var(--amber);" id="attr-hex-display">0x07</div>
+            </div>
+            <div id="color-char-preview" style="margin-top: 15px; padding: 20px; border-radius: 6px; text-align: center; font-size: 32px; font-family: 'Share Tech Mono', monospace;">
+              ABC
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Flow Tab -->
+  <div id="flow" class="tab-content">
+    <div class="section">
+      <div class="section-header">
+        <span class="led"></span>
+        <h2>CPU Write to Pixel Display</h2>
+      </div>
+      <div class="section-content">
+        <div class="flow-container" id="flow-diagram">
+          <div class="flow-stage" id="stage1" style="left: 20px; top: 60px; width: 140px;">
+            <span class="num">1</span>
+            <div class="title">CPU Executes</div>
+            <div class="desc">MOV [0xB8000], AX</div>
+          </div>
+          <div class="flow-stage" id="stage2" style="left: 200px; top: 60px; width: 140px;">
+            <span class="num">2</span>
+            <div class="title">System Bus</div>
+            <div class="desc">Address decoded</div>
+          </div>
+          <div class="flow-stage" id="stage3" style="left: 380px; top: 60px; width: 160px;">
+            <span class="num">3</span>
+            <div class="title">VGA Controller</div>
+            <div class="desc">Receives data at 0xB8000</div>
+          </div>
+          <div class="flow-stage" id="stage4" style="left: 580px; top: 60px; width: 140px;">
+            <span class="num">4</span>
+            <div class="title">Video RAM</div>
+            <div class="desc">Stores char + attr</div>
+          </div>
+          <div class="flow-stage" id="stage5" style="left: 760px; top: 60px; width: 150px;">
+            <span class="num">5</span>
+            <div class="title">Character ROM</div>
+            <div class="desc">ASCII → 8×16 bitmap</div>
+          </div>
+          <div class="flow-stage" id="stage6" style="left: 950px; top: 60px; width: 140px;">
+            <span class="num">6</span>
+            <div class="title">Display</div>
+            <div class="desc">Pixels on screen</div>
+          </div>
+          <div class="flow-data" id="flow-data"></div>
+          <button class="play-btn" id="play-flow" aria-label="Play animation">▶ Play Animation</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Demo Tab -->
+  <div id="demo" class="tab-content">
+    <div class="section">
+      <div class="section-header">
+        <span class="led"></span>
+        <h2>Interactive VGA Text Mode</h2>
+      </div>
+      <div class="section-content">
+        <div class="demo-container">
+          <div class="vga-screen">
+            <div class="screen-content" id="vga-display"></div>
+          </div>
+          <div class="demo-controls">
+            <div class="control-group">
+              <label>Type Text</label>
+              <input type="text" id="demo-input" placeholder="Type here..." maxlength="40" aria-label="Text input">
+            </div>
+            <div class="control-group">
+              <label>Foreground</label>
+              <div class="mini-palette" id="demo-fg-palette"></div>
+            </div>
+            <div class="control-group">
+              <label>Background</label>
+              <div class="mini-palette" id="demo-bg-palette"></div>
+            </div>
+            <div class="code-output">
+              <pre id="code-preview">// C code to write "Hello"
+char* vga = (char*)0xB8000;
+vga[0] = 'H';
+vga[1] = 0x07; // gray on black</pre>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// VGA 16-color palette
+const VGA_COLORS = [
+  '#000000', '#0000AA', '#00AA00', '#00AAAA',
+  '#AA0000', '#AA00AA', '#AA5500', '#AAAAAA',
+  '#555555', '#5555FF', '#55FF55', '#55FFFF',
+  '#FF5555', '#FF55FF', '#FFFF55', '#FFFFFF'
+];
+
+const COLOR_NAMES = [
+  'Black', 'Blue', 'Green', 'Cyan',
+  'Red', 'Magenta', 'Brown', 'Light Gray',
+  'Dark Gray', 'Light Blue', 'Light Green', 'Light Cyan',
+  'Light Red', 'Light Magenta', 'Yellow', 'White'
+];
+
+// State
+let selectedFg = 7;
+let selectedBg = 0;
+let charByte = 65; // 'A'
+let attrByte = 0x07;
+let demoText = '';
+let demoCursor = 0;
+
+// Initialize tabs
+document.querySelectorAll('.nav-tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.nav-tab').forEach(t => {
+      t.classList.remove('active');
+      t.setAttribute('aria-selected', 'false');
+    });
+    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+    
+    tab.classList.add('active');
+    tab.setAttribute('aria-selected', 'true');
+    document.getElementById(tab.dataset.tab).classList.add('active');
+  });
+});
+
+// Architecture Diagram
+function initArchDiagram() {
+  const container = document.getElementById('arch-diagram');
+  if (!container) return;
+  
+  container.innerHTML = `
+    <div class="arch-box" style="left: 50px; top: 100px; width: 120px;">
+      <div class="icon">🖥️</div>
+      <div class="label">Processor</div>
+      <div class="name">CPU</div>
+      <div class="detail">Executes kernel code</div>
+    </div>
+    <div class="arch-line" style="left: 175px; top: 140px; width: 80px; height: 3px;"></div>
+    <div class="arch-arrow" style="left: 250px; top: 133px;">→</div>
+    <div class="arch-box" style="left: 270px; top: 100px; width: 140px;">
+      <div class="icon">🔀</div>
+      <div class="label">Memory Bus</div>
+      <div class="name">System Bus</div>
+      <div class="detail">Routes by address</div>
+    </div>
+    <div class="arch-line" style="left: 415px; top: 140px; width: 80px; height: 3px;"></div>
+    <div class="arch-arrow" style="left: 490px; top: 133px;">→</div>
+    <div class="arch-box" style="left: 510px; top: 80px; width: 160px;">
+      <div class="icon">📺</div>
+      <div class="label">Video Hardware</div>
+      <div class="name">VGA Controller</div>
+      <div class="detail">0xB8000-0xBFFFF mapped</div>
+    </div>
+    <div class="arch-box" style="left: 510px; top: 180px; width: 160px;">
+      <div class="icon">💾</div>
+      <div class="label">Main Memory</div>
+      <div class="name">RAM</div>
+      <div class="detail">Other addresses</div>
+    </div>
+    <div class="arch-line" style="left: 675px; top: 120px; width: 60px; height: 3px;"></div>
+    <div class="arch-arrow" style="left: 730px; top: 113px;">→</div>
+    <div class="arch-box" style="left: 750px; top: 100px; width: 140px;">
+      <div class="icon">🖵</div>
+      <div class="label">Output</div>
+      <div class="name">Monitor</div>
+      <div class="detail">80×25 characters</div>
+    </div>
+  `;
+  
+  // Animate lines on hover
+  const boxes = container.querySelectorAll('.arch-box');
+  boxes.forEach((box, i) => {
+    box.addEventListener('mouseenter', () => {
+      container.querySelectorAll('.arch-line, .arch-arrow').forEach(el => el.classList.add('active'));
+    });
+    box.addEventListener('mouseleave', () => {
+      container.querySelectorAll('.arch-line, .arch-arrow').forEach(el => el.classList.remove('active'));
+    });
+  });
+}
+
+// Memory Minimap
+function initMemoryMinimap() {
+  const container = document.getElementById('memory-minimap');
+  if (!container) return;
+  
+  container.innerHTML = '';
+  
+  for (let row = 0; row < 25; row++) {
+    for (let col = 0; col < 80; col++) {
+      const cell = document.createElement('div');
+      cell.className = 'minimap-cell';
+      cell.dataset.row = row;
+      cell.dataset.col = col;
+      
+      cell.addEventListener('mouseenter', () => {
+        const index = row * 80 + col;
+        const addr = 0xB8000 + index * 2;
+        document.getElementById('cell-info').textContent = 
+          `Row ${row}, Col ${col} | Index ${index} | Address 0x${addr.toString(16).toUpperCase()}`;
+        cell.classList.add('highlighted');
+      });
+      
+      cell.addEventListener('mouseleave', () => {
+        cell.classList.remove('highlighted');
+      });
+      
+      container.appendChild(cell);
+    }
+  }
+}
+
+// Address Calculator
+function initCalculator() {
+  const rowInput = document.getElementById('calc-row');
+  const colInput = document.getElementById('calc-col');
+  const indexDisplay = document.getElementById('calc-index');
+  const addressDisplay = document.getElementById('calc-address');
+  
+  if (!rowInput || !colInput) return;
+  
+  function updateCalc() {
+    const row = parseInt(rowInput.value) || 0;
+    const col = parseInt(colInput.value) || 0;
+    const index = row * 80 + col;
+    const address = 0xB8000 + index * 2;
+    
+    indexDisplay.value = index;
+    addressDisplay.textContent = `0x${address.toString(16).toUpperCase()}`;
+  }
+  
+  rowInput.addEventListener('input', updateCalc);
+  colInput.addEventListener('input', updateCalc);
+}
+
+// Character byte bits
+function initCharBits() {
+  const container = document.getElementById('char-bits');
+  if (!container) return;
+  
+  container.innerHTML = '';
+  
+  for (let i = 7; i >= 0; i--) {
+    const bit = document.createElement('div');
+    bit.className = 'bit';
+    bit.dataset.index = i;
+    
+    const isSet = (charByte >> i) & 1;
+    if (isSet) bit.classList.add('active');
+    
+    bit.innerHTML = `
+      <span class="value">${isSet ? '1' : '0'}</span>
+      <span class="index">bit ${i}</span>
+    `;
+    
+    bit.addEventListener('click', () => {
+      charByte ^= (1 << i);
+      updateCharDisplay();
+    });
+    
+    container.appendChild(bit);
+  }
+}
+
+function updateCharDisplay() {
+  const container = document.getElementById('char-bits');
+  if (!container) return;
+  
+  const bits = container.querySelectorAll('.bit');
+  bits.forEach((bit, idx) => {
+    const i = 7 - idx;
+    const isSet = (charByte >> i) & 1;
+    bit.classList.toggle('active', isSet);
+    bit.querySelector('.value').textContent = isSet ? '1' : '0';
+  });
+  
+  document.getElementById('char-binary').textContent = charByte.toString(2).padStart(8, '0');
+  document.getElementById('char-hex').textContent = '0x' + charByte.toString(16).toUpperCase().padStart(2, '0');
+  document.getElementById('char-dec').textContent = charByte;
+  document.getElementById('char-display').textContent = charByte >= 32 && charByte < 127 ? String.fromCharCode(charByte) : '·';
+}
+
+// Attribute byte bits
+function initAttrBits() {
+  const container = document.getElementById('attr-bits');
+  if (!container) return;
+  
+  container.innerHTML = '';
+  
+  for (let i = 7; i >= 0; i--) {
+    const bit = document.createElement('div');
+    bit.className = 'bit';
+    bit.dataset.index = i;
+    
+    const isSet = (attrByte >> i) & 1;
+    if (isSet) bit.classList.add('active');
+    
+    // Color code bits
+    if (i >= 4) {
+      bit.style.borderColor = 'var(--magenta)';
+    } else {
+      bit.style.borderColor = 'var(--cyan)';
+    }
+    
+    bit.innerHTML = `
+      <span class="value">${isSet ? '1' : '0'}</span>
+      <span class="index">bit ${i}</span>
+    `;
+    
+    bit.addEventListener('click', () => {
+      attrByte ^= (1 << i);
+      updateAttrDisplay();
+    });
+    
+    container.appendChild(bit);
+  }
+}
+
+function updateAttrDisplay() {
+  const container = document.getElementById('attr-bits');
+  if (!container) return;
+  
+  const bits = container.querySelectorAll('.bit');
+  bits.forEach((bit, idx) => {
+    const i = 7 - idx;
+    const isSet = (attrByte >> i) & 1;
+    bit.classList.toggle('active', isSet);
+    bit.querySelector('.value').textContent = isSet ? '1' : '0';
+  });
+  
+  const bg = (attrByte >> 4) & 0x0F;
+  const fg = attrByte & 0x0F;
+  
+  document.getElementById('attr-bg').textContent = `${bg} (${COLOR_NAMES[bg]})`;
+  document.getElementById('attr-fg').textContent = `${fg} (${COLOR_NAMES[fg]})`;
+  document.getElementById('attr-hex').textContent = '0x' + attrByte.toString(16).toUpperCase().padStart(2, '0');
+  
+  const preview = document.getElementById('attr-preview');
+  preview.style.backgroundColor = VGA_COLORS[bg];
+  preview.style.color = VGA_COLORS[fg];
+  preview.textContent = charByte >= 32 && charByte < 127 ? String.fromCharCode(charByte) : 'A';
+}
+
+// Color Palettes
+function initColorPalettes() {
+  const fgContainer = document.getElementById('fg-palette');
+  const bgContainer = document.getElementById('bg-palette');
+  
+  if (!fgContainer || !bgContainer) return;
+  
+  VGA_COLORS.forEach((color, i) => {
+    // Foreground swatch
+    const fgSwatch = document.createElement('div');
+    fgSwatch.className = 'color-swatch';
+    if (i === selectedFg) fgSwatch.classList.add('selected');
+    fgSwatch.style.backgroundColor = color;
+    fgSwatch.innerHTML = `<span class="number" style="color: ${i < 8 ? '#fff' : '#000'}">${i}</span>`;
+    fgSwatch.addEventListener('click', () => {
+      selectedFg = i;
+      fgContainer.querySelectorAll('.color-swatch').forEach(s => s.classList.remove('selected'));
+      fgSwatch.classList.add('selected');
+      updateColorPreview();
+    });
+    fgContainer.appendChild(fgSwatch);
+    
+    // Background swatch
+    const bgSwatch = document.createElement('div');
+    bgSwatch.className = 'color-swatch';
+    if (i === selectedBg) bgSwatch.classList.add('selected');
+    bgSwatch.style.backgroundColor = color;
+    bgSwatch.innerHTML = `<span class="number" style="color: ${i < 8 ? '#fff' : '#000'}">${i}</span>`;
+    bgSwatch.addEventListener('click', () => {
+      selectedBg = i;
+      bgContainer.querySelectorAll('.color-swatch').forEach(s => s.classList.remove('selected'));
+      bgSwatch.classList.add('selected');
+      updateColorPreview();
+    });
+    bgContainer.appendChild(bgSwatch);
+  });
+  
+  updateColorPreview();
+}
+
+function updateColorPreview() {
+  document.getElementById('fg-preview').style.backgroundColor = VGA_COLORS[selectedFg];
+  document.getElementById('bg-preview').style.backgroundColor = VGA_COLORS[selectedBg];
+  
+  document.getElementById('bg-bits-display').textContent = selectedBg.toString(2).padStart(4, '0');
+  document.getElementById('fg-bits-display').textContent = selectedFg.toString(2).padStart(4, '0');
+  
+  const attrVal = (selectedBg << 4) | selectedFg;
+  document.getElementById('attr-hex-display').textContent = '0x' + attrVal.toString(16).toUpperCase().padStart(2, '0');
+  
+  const preview = document.getElementById('color-char-preview');
+  preview.style.backgroundColor = VGA_COLORS[selectedBg];
+  preview.style.color = VGA_COLORS[selectedFg];
+}
+
+// Flow Animation
+function initFlowAnimation() {
+  const playBtn = document.getElementById('play-flow');
+  const dataEl = document.getElementById('flow-data');
+  const stages = ['stage1', 'stage2', 'stage3', 'stage4', 'stage5', 'stage6'];
+  
+  if (!playBtn || !dataEl) return;
+  
+  let isPlaying = false;
+  
+  playBtn.addEventListener('click', () => {
+    if (isPlaying) return;
+    isPlaying = true;
+    playBtn.textContent = '⏸ Playing...';
+    
+    // Reset
+    stages.forEach(id => document.getElementById(id).classList.remove('active'));
+    dataEl.style.opacity = '0';
+    
+    const positions = [
+      { left: 110, top: 130 },
+      { left: 340, top: 130 },
+      { left: 590, top: 110 },
+      { left: 650, top: 110 },
+      { left: 830, top: 110 },
+      { left: 1020, top: 110 }
+    ];
+    
+    let step = 0;
+    
+    function animate() {
+      if (step >= stages.length) {
+        isPlaying = false;
+        playBtn.textContent = '▶ Play Animation';
+        dataEl.style.opacity = '0';
+        return;
+      }
+      
+      document.getElementById(stages[step]).classList.add('active');
+      
+      dataEl.style.opacity = '1';
+      dataEl.style.left = positions[step].left + 'px';
+      dataEl.style.top = positions[step].top + 'px';
+      dataEl.style.transition = 'all 0.5s ease';
+      
+      step++;
+      setTimeout(animate, 800);
+    }
+    
+    animate();
+  });
+}
+
+// Demo Screen
+function initDemoScreen() {
+  const display = document.getElementById('vga-display');
+  const input = document.getElementById('demo-input');
+  const fgPalette = document.getElementById('demo-fg-palette');
+  const bgPalette = document.getElementById('demo-bg-palette');
+  
+  if (!display || !input) return;
+  
+  // Initialize display grid (40x10 for demo)
+  const COLS = 40;
+  const ROWS = 10;
+  const cells = [];
+  
+  for (let i = 0; i < ROWS * COLS; i++) {
+    const cell = document.createElement('div');
+    cell.className = 'screen-char';
+    cell.style.backgroundColor = VGA_COLORS[0];
+    cell.style.color = VGA_COLORS[7];
+    cell.textContent = ' ';
+    cells.push(cell);
+    display.appendChild(cell);
+  }
+  
+  // Mini palettes
+  if (fgPalette && bgPalette) {
+    VGA_COLORS.forEach((color, i) => {
+      const fgSwatch = document.createElement('div');
+      fgSwatch.className = 'mini-swatch' + (i === selectedFg ? ' selected' : '');
+      fgSwatch.style.backgroundColor = color;
+      fgSwatch.addEventListener('click', () => {
+        selectedFg = i;
+        fgPalette.querySelectorAll('.mini-swatch').forEach(s => s.classList.remove('selected'));
+        fgSwatch.classList.add('selected');
+        updateDemoDisplay();
+      });
+      fgPalette.appendChild(fgSwatch);
+      
+      const bgSwatch = document.createElement('div');
+      bgSwatch.className = 'mini-swatch' + (i === selectedBg ? ' selected' : '');
+      bgSwatch.style.backgroundColor = color;
+      bgSwatch.addEventListener('click', () => {
+        selectedBg = i;
+        bgPalette.querySelectorAll('.mini-swatch').forEach(s => s.classList.remove('selected'));
+        bgSwatch.classList.add('selected');
+        updateDemoDisplay();
+      });
+      bgPalette.appendChild(bgSwatch);
+    });
+  }
+  
+  function updateDemoDisplay() {
+    const text = demoText || input.value || '';
+    
+    // Clear display
+    cells.forEach((cell, i) => {
+      cell.style.backgroundColor = VGA_COLORS[0];
+      cell.style.color = VGA_COLORS[7];
+      cell.textContent = ' ';
+      cell.classList.remove('cursor');
+    });
+    
+    // Write text
+    for (let i = 0; i < text.length && i < cells.length; i++) {
+      cells[i].style.backgroundColor = VGA_COLORS[selectedBg];
+      cells[i].style.color = VGA_COLORS[selectedFg];
+      cells[i].textContent = text[i];
+    }
+    
+    // Show cursor
+    if (text.length < cells.length) {
+      cells[text.length].classList.add('cursor');
+    }
+    
+    // Update code preview
+    updateCodePreview(text);
+  }
+  
+  function updateCodePreview(text) {
+    const preview = document.getElementById('code-preview');
+    if (!preview || !text) {
+      preview.textContent = `// C code to write to VGA
+char* vga = (char*)0xB8000;
+// Write character and attribute
+vga[0] = 'H';
+vga[1] = 0x${((selectedBg << 4) | selectedFg).toString(16).toUpperCase().padStart(2, '0')}; // ${COLOR_NAMES[selectedFg]} on ${COLOR_NAMES[selectedBg]}`;
+      return;
+    }
+    
+    const attrByte = ((selectedBg << 4) | selectedFg).toString(16).toUpperCase().padStart(2, '0');
+    let code = `// C code to write "${text.substring(0, 10)}${text.length > 10 ? '...' : ''}"\n`;
+    code += `char* vga = (char*)0xB8000;\n`;
+    
+    for (let i = 0; i < Math.min(text.length, 5); i++) {
+      const charCode = text.charCodeAt(i).toString(16).toUpperCase().padStart(2, '0');
+      code += `vga[${i * 2}] = 0x${charCode}; // '${text[i]}'\n`;
+      code += `vga[${i * 2 + 1}] = 0x${attrByte};\n`;
+    }
+    
+    if (text.length > 5) {
+      code += `// ... and ${text.length - 5} more characters`;
+    }
+    
+    preview.textContent = code;
+  }
+  
+  input.addEventListener('input', () => {
+    demoText = input.value;
+    updateDemoDisplay();
+  });
+  
+  // Click on cells
+  cells.forEach((cell, i) => {
+    cell.addEventListener('click', () => {
+      const row = Math.floor(i / COLS);
+      const col = i % COLS;
+      const index = row * 80 + col;
+      const addr = 0xB8000 + index * 2;
+      
+      cell.style.backgroundColor = VGA_COLORS[selectedBg];
+      cell.style.color = VGA_COLORS[selectedFg];
+      cell.textContent = 'X';
+    });
+  });
+  
+  updateDemoDisplay();
+}
+
+// Initialize everything
+document.addEventListener('DOMContentLoaded', () => {
+  initArchDiagram();
+  initMemoryMinimap();
+  initCalculator();
+  initCharBits();
+  initAttrBits();
+  updateCharDisplay();
+  updateAttrDisplay();
+  initColorPalettes();
+  initFlowAnimation();
+  initDemoScreen();
+});
+
+// Handle visibility change
+document.addEventListener('visibilitychange', () => {
+  // Pause animations when page is hidden
+});
+</script>
+
+</body>
+</html>

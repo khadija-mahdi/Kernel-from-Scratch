@@ -1,0 +1,1702 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap');
+        
+        :root {
+            --bg-primary: #0a0e14;
+            --bg-secondary: #0d1117;
+            --bg-tertiary: #161b22;
+            --text-primary: #e6edf3;
+            --text-secondary: #8b949e;
+            --text-muted: #484f58;
+            --accent-green: #00ff9f;
+            --accent-cyan: #00d4ff;
+            --accent-amber: #ffb000;
+            --accent-red: #ff4757;
+            --accent-purple: #bd93f9;
+            --border-color: #21262d;
+            --glow-green: 0 0 20px rgba(0, 255, 159, 0.3);
+            --glow-cyan: 0 0 20px rgba(0, 212, 255, 0.3);
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        html, body {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            font-family: 'JetBrains Mono', monospace;
+        }
+        
+        .container {
+            display: grid;
+            grid-template-columns: 320px 1fr 300px;
+            grid-template-rows: 1fr auto;
+            height: 100vh;
+            gap: 1px;
+            background: var(--border-color);
+        }
+        
+        .panel {
+            background: var(--bg-primary);
+            overflow: hidden;
+        }
+        
+        .code-panel {
+            display: flex;
+            flex-direction: column;
+            border-right: 1px solid var(--border-color);
+        }
+        
+        .panel-header {
+            padding: 12px 16px;
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border-color);
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .panel-header::before {
+            content: '';
+            width: 8px;
+            height: 8px;
+            background: var(--accent-green);
+            border-radius: 50%;
+            animation: pulse 2s ease-in-out infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 0.4; }
+            50% { opacity: 1; }
+        }
+        
+        .code-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 16px;
+            font-size: 12px;
+            line-height: 1.7;
+        }
+        
+        .code-content::-webkit-scrollbar {
+            width: 6px;
+        }
+        
+        .code-content::-webkit-scrollbar-track {
+            background: var(--bg-secondary);
+        }
+        
+        .code-content::-webkit-scrollbar-thumb {
+            background: var(--text-muted);
+            border-radius: 3px;
+        }
+        
+        .code-line {
+            display: flex;
+            padding: 2px 0;
+            transition: background 0.2s;
+        }
+        
+        .code-line.active {
+            background: rgba(0, 255, 159, 0.1);
+            border-left: 2px solid var(--accent-green);
+            margin-left: -16px;
+            padding-left: 14px;
+        }
+        
+        .line-num {
+            width: 32px;
+            color: var(--text-muted);
+            text-align: right;
+            padding-right: 12px;
+            user-select: none;
+            flex-shrink: 0;
+        }
+        
+        .line-code {
+            white-space: pre;
+        }
+        
+        .kw { color: var(--accent-purple); }
+        .fn { color: var(--accent-cyan); }
+        .num { color: var(--accent-amber); }
+        .str { color: var(--accent-green); }
+        .cmt { color: var(--text-muted); font-style: italic; }
+        .reg { color: var(--accent-red); }
+        .type { color: var(--accent-cyan); }
+        
+        .canvas-container {
+            position: relative;
+        }
+        
+        #canvas3d {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+        
+        .overlay-info {
+            position: absolute;
+            top: 16px;
+            left: 16px;
+            background: rgba(13, 17, 23, 0.9);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 12px 16px;
+            font-size: 11px;
+            backdrop-filter: blur(10px);
+        }
+        
+        .overlay-info .phase-indicator {
+            color: var(--accent-green);
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+        
+        .state-panel {
+            display: flex;
+            flex-direction: column;
+            border-left: 1px solid var(--border-color);
+        }
+        
+        .state-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 16px;
+        }
+        
+        .register-group {
+            margin-bottom: 20px;
+        }
+        
+        .register-title {
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-muted);
+            margin-bottom: 8px;
+        }
+        
+        .register {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 12px;
+            background: var(--bg-secondary);
+            border-radius: 4px;
+            margin-bottom: 4px;
+            font-size: 12px;
+            transition: all 0.3s ease;
+        }
+        
+        .register.changed {
+            background: rgba(0, 255, 159, 0.15);
+            border: 1px solid var(--accent-green);
+        }
+        
+        .reg-name {
+            color: var(--accent-cyan);
+            font-weight: 600;
+        }
+        
+        .reg-value {
+            color: var(--accent-amber);
+            font-family: 'Space Mono', monospace;
+        }
+        
+        .memory-map {
+            margin-top: 16px;
+        }
+        
+        .memory-entry {
+            display: flex;
+            align-items: center;
+            padding: 6px 0;
+            font-size: 11px;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .memory-color {
+            width: 12px;
+            height: 12px;
+            border-radius: 2px;
+            margin-right: 10px;
+            flex-shrink: 0;
+        }
+        
+        .memory-label {
+            flex: 1;
+            color: var(--text-secondary);
+        }
+        
+        .memory-addr {
+            color: var(--text-muted);
+            font-family: 'Space Mono', monospace;
+            font-size: 10px;
+        }
+        
+        .controls-panel {
+            grid-column: 1 / -1;
+            background: var(--bg-secondary);
+            border-top: 1px solid var(--border-color);
+            padding: 16px 24px;
+            display: flex;
+            align-items: center;
+            gap: 24px;
+        }
+        
+        .phase-tabs {
+            display: flex;
+            gap: 4px;
+        }
+        
+        .phase-tab {
+            padding: 8px 16px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            color: var(--text-secondary);
+            font-size: 11px;
+            font-family: inherit;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .phase-tab:hover {
+            background: var(--bg-primary);
+            color: var(--text-primary);
+        }
+        
+        .phase-tab.active {
+            background: var(--accent-green);
+            color: var(--bg-primary);
+            border-color: var(--accent-green);
+            font-weight: 600;
+        }
+        
+        .step-controls {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-left: auto;
+        }
+        
+        .step-btn {
+            width: 40px;
+            height: 40px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            border-radius: 50%;
+            color: var(--text-primary);
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .step-btn:hover:not(:disabled) {
+            background: var(--accent-cyan);
+            color: var(--bg-primary);
+            border-color: var(--accent-cyan);
+            box-shadow: var(--glow-cyan);
+        }
+        
+        .step-btn:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+        
+        .step-indicator {
+            font-size: 12px;
+            color: var(--text-secondary);
+            min-width: 80px;
+            text-align: center;
+        }
+        
+        .step-indicator span {
+            color: var(--accent-amber);
+            font-weight: 600;
+        }
+        
+        .description-box {
+            flex: 1;
+            max-width: 500px;
+            padding: 12px 16px;
+            background: var(--bg-primary);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            font-size: 12px;
+            line-height: 1.6;
+            color: var(--text-secondary);
+        }
+        
+        .description-box strong {
+            color: var(--accent-green);
+        }
+        
+        .tooltip {
+            position: absolute;
+            background: rgba(13, 17, 23, 0.95);
+            border: 1px solid var(--accent-cyan);
+            border-radius: 6px;
+            padding: 10px 14px;
+            font-size: 11px;
+            max-width: 250px;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.2s;
+            z-index: 1000;
+            backdrop-filter: blur(10px);
+        }
+        
+        .tooltip.visible {
+            opacity: 1;
+        }
+        
+        .tooltip-title {
+            color: var(--accent-cyan);
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+        
+        .tooltip-content {
+            color: var(--text-secondary);
+            line-height: 1.5;
+        }
+        
+        @media (prefers-color-scheme: light) {
+            :root {
+                --bg-primary: #f6f8fa;
+                --bg-secondary: #ffffff;
+                --bg-tertiary: #eaeef2;
+                --text-primary: #1f2328;
+                --text-secondary: #57606a;
+                --text-muted: #8c959f;
+                --border-color: #d0d7de;
+                --accent-green: #00875a;
+                --accent-cyan: #0078d4;
+                --accent-amber: #bf5700;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="panel code-panel">
+            <div class="panel-header">Assembly / C Code</div>
+            <div class="code-content" id="codeView"></div>
+        </div>
+        
+        <div class="panel canvas-container">
+            <canvas id="canvas3d"></canvas>
+            <div class="overlay-info">
+                <div class="phase-indicator" id="phaseLabel">PHASE 1: INITIALIZATION</div>
+                <div id="stepLabel" style="color: var(--text-secondary);">Setting up page directory</div>
+            </div>
+            <div class="tooltip" id="tooltip">
+                <div class="tooltip-title"></div>
+                <div class="tooltip-content"></div>
+            </div>
+        </div>
+        
+        <div class="panel state-panel">
+            <div class="panel-header">CPU State & Memory</div>
+            <div class="state-content">
+                <div class="register-group">
+                    <div class="register-title">Control Registers</div>
+                    <div class="register" id="regCR0">
+                        <span class="reg-name">CR0</span>
+                        <span class="reg-value">0x00000011</span>
+                    </div>
+                    <div class="register" id="regCR3">
+                        <span class="reg-name">CR3</span>
+                        <span class="reg-value">0x00000000</span>
+                    </div>
+                    <div class="register" id="regEIP">
+                        <span class="reg-name">EIP</span>
+                        <span class="reg-value">0x00100000</span>
+                    </div>
+                </div>
+                
+                <div class="register-group">
+                    <div class="register-title">Paging Status</div>
+                    <div class="register" id="pagingStatus">
+                        <span class="reg-name">Paging</span>
+                        <span class="reg-value" style="color: var(--accent-red)">DISABLED</span>
+                    </div>
+                </div>
+                
+                <div class="register-group memory-map">
+                    <div class="register-title">Memory Layout</div>
+                    <div class="memory-entry">
+                        <div class="memory-color" style="background: #ff4757"></div>
+                        <span class="memory-label">Page Directory</span>
+                        <span class="memory-addr" id="pdAddr">—</span>
+                    </div>
+                    <div class="memory-entry">
+                        <div class="memory-color" style="background: #00d4ff"></div>
+                        <span class="memory-label">Page Table 0</span>
+                        <span class="memory-addr" id="pt0Addr">—</span>
+                    </div>
+                    <div class="memory-entry">
+                        <div class="memory-color" style="background: #bd93f9"></div>
+                        <span class="memory-label">Page Table 768</span>
+                        <span class="memory-addr" id="pt768Addr">—</span>
+                    </div>
+                    <div class="memory-entry">
+                        <div class="memory-color" style="background: #00ff9f"></div>
+                        <span class="memory-label">Kernel Code</span>
+                        <span class="memory-addr">0x00100000</span>
+                    </div>
+                </div>
+                
+                <div class="register-group" style="margin-top: 20px;">
+                    <div class="register-title">Current Address Translation</div>
+                    <div id="translationInfo" style="font-size: 11px; color: var(--text-secondary); line-height: 1.8;">
+                        <div>Virtual: <span style="color: var(--accent-cyan)">—</span></div>
+                        <div>Dir Index: <span style="color: var(--accent-amber)">—</span></div>
+                        <div>Table Index: <span style="color: var(--accent-amber)">—</span></div>
+                        <div>Physical: <span style="color: var(--accent-green)">—</span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="controls-panel">
+            <div class="phase-tabs">
+                <button class="phase-tab active" data-phase="0" aria-label="Phase 1: Initialization">1. Init</button>
+                <button class="phase-tab" data-phase="1" aria-label="Phase 2: Identity Mapping">2. Identity</button>
+                <button class="phase-tab" data-phase="2" aria-label="Phase 3: Higher Half">3. High</button>
+                <button class="phase-tab" data-phase="3" aria-label="Phase 4: Dynamic">4. Dynamic</button>
+                <button class="phase-tab" data-phase="4" aria-label="Phase 5: Enable">5. Enable</button>
+            </div>
+            
+            <div class="description-box" id="description">
+                <strong>Initialization Phase:</strong> The kernel boots in physical memory mode. First, we must allocate and prepare the page directory structure.
+            </div>
+            
+            <div class="step-controls">
+                <button class="step-btn" id="prevBtn" aria-label="Previous step">◀</button>
+                <div class="step-indicator">Step <span id="stepNum">1</span>/<span id="totalSteps">5</span></div>
+                <button class="step-btn" id="nextBtn" aria-label="Next step">▶</button>
+                <button class="step-btn" id="playBtn" aria-label="Play animation">⏵</button>
+            </div>
+        </div>
+    </div>
+
+    <script type="importmap">
+    {
+        "imports": {
+            "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+            "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+        }
+    }
+    </script>
+    
+    <script type="module">
+        import * as THREE from 'three';
+        import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+        
+        // State management
+        const state = {
+            phase: 0,
+            step: 0,
+            playing: false,
+            playInterval: null,
+            registers: {
+                cr0: 0x00000011,
+                cr3: 0x00000000,
+                eip: 0x00100000
+            },
+            pagingEnabled: false,
+            pdAddress: null,
+            pt0Address: null,
+            pt768Address: null,
+            pt769Address: null
+        };
+        
+        // Phase definitions with steps
+        const phases = [
+            {
+                name: "INITIALIZATION",
+                description: "The kernel boots in physical memory mode. First, we must allocate and prepare the page directory structure.",
+                steps: [
+                    {
+                        title: "Kernel at physical 1MB",
+                        desc: "<strong>Boot state:</strong> GRUB loaded the kernel at physical address 0x00100000 (1MB). Paging is OFF — all addresses are physical.",
+                        code: `boot_entry:
+    <span class="cmt">; Kernel entry point</span>
+    <span class="cmt">; Running at physical 0x00100000</span>
+    <span class="cmt">; Paging is DISABLED</span>
+    <span class="cmt">; All addresses are physical</span>
+    
+    <span class="kw">mov</span> <span class="reg">esp</span>, stack_top
+    <span class="kw">call</span> <span class="fn">setup_paging</span>`,
+                        activeLine: 7,
+                        action: 'showKernel'
+                    },
+                    {
+                        title: "Find aligned memory for PD",
+                        desc: "<strong>Allocation:</strong> Page Directory must be 4KB aligned. Physical frame allocator finds free frame at 0x00200000.",
+                        code: `<span class="fn">setup_paging</span>:
+    <span class="cmt">; Allocate 4KB-aligned frame</span>
+    <span class="cmt">; for Page Directory</span>
+    <span class="kw">push</span> <span class="num">4096</span>
+    <span class="kw">call</span> <span class="fn">pmm_alloc_frame</span>
+    <span class="cmt">; Returns 0x00200000 in EAX</span>
+    <span class="kw">mov</span> [page_directory], <span class="reg">eax</span>`,
+                        activeLine: 5,
+                        action: 'allocatePD'
+                    },
+                    {
+                        title: "Zero out Page Directory",
+                        desc: "<strong>Clearing:</strong> All 1024 entries (4KB total) must be zeroed. Each entry starts as 'not present' (bit 0 = 0).",
+                        code: `    <span class="cmt">; Zero 4096 bytes (1024 entries)</span>
+    <span class="kw">mov</span> <span class="reg">edi</span>, <span class="reg">eax</span>
+    <span class="kw">xor</span> <span class="reg">eax</span>, <span class="reg">eax</span>
+    <span class="kw">mov</span> <span class="reg">ecx</span>, <span class="num">1024</span>
+    <span class="kw">rep</span> <span class="kw">stosd</span>
+    <span class="cmt">; All 1024 PD entries now = 0</span>
+    <span class="cmt">; Present bit = 0 (not mapped)</span>`,
+                        activeLine: 5,
+                        action: 'zeroPD'
+                    },
+                    {
+                        title: "PD entry structure",
+                        desc: "<strong>Entry format:</strong> Each 4-byte entry: bits 31-12 = PT physical address, bits 11-0 = flags. Present=0 means not mapped.",
+                        code: `<span class="cmt">/* Page Directory Entry (4 bytes)
+   ┌────────────────────┬───────────┐
+   │ PT Phys Addr[31:12]│  Flags    │
+   └────────────────────┴───────────┘
+   Bit 0: Present (P)
+   Bit 1: Read/Write (R/W)
+   Bit 2: User/Supervisor (U/S)
+   Bits 31-12: Page Table address
+*/</span>`,
+                        activeLine: 0,
+                        action: 'showPDStructure'
+                    },
+                    {
+                        title: "Load CR3 with PD address",
+                        desc: "<strong>CR3 Load:</strong> CR3 register holds the physical address of Page Directory. CPU uses this for all address translation.",
+                        code: `    <span class="cmt">; Load Page Directory into CR3</span>
+    <span class="kw">mov</span> <span class="reg">eax</span>, [page_directory]
+    <span class="kw">mov</span> <span class="reg">cr3</span>, <span class="reg">eax</span>
+    <span class="cmt">; CR3 = 0x00200000</span>
+    <span class="cmt">; CPU knows where PD lives</span>
+    <span class="cmt">; But paging still DISABLED!</span>`,
+                        activeLine: 3,
+                        action: 'loadCR3'
+                    }
+                ]
+            },
+            {
+                name: "IDENTITY MAPPING",
+                description: "Identity mapping makes virtual address = physical address. Critical for the moment paging is enabled!",
+                steps: [
+                    {
+                        title: "Why identity mapping?",
+                        desc: "<strong>Critical:</strong> When paging enables, EIP keeps same value. If virtual 0x00100000 doesn't map to physical 0x00100000, CPU crashes!",
+                        code: `<span class="cmt">/*
+ * IDENTITY MAPPING EXPLAINED
+ * 
+ * Before paging: EIP = 0x00100000 (physical)
+ * After paging:  EIP = 0x00100000 (virtual)
+ * 
+ * If virtual 0x00100000 doesn't map
+ * to physical 0x00100000, the next
+ * instruction fetch will fail!
+ * 
+ * Solution: Map first 4MB identity
+ * virtual 0x00000000 = physical 0x00000000
+ */</span>`,
+                        activeLine: 0,
+                        action: 'explainIdentity'
+                    },
+                    {
+                        title: "Allocate Page Table 0",
+                        desc: "<strong>Page Table:</strong> Entry 0 of PD covers 0x00000000-0x003FFFFF. We allocate a page table at 0x00201000.",
+                        code: `<span class="fn">setup_identity_map</span>:
+    <span class="cmt">; Allocate Page Table for PD[0]</span>
+    <span class="kw">push</span> <span class="num">4096</span>
+    <span class="kw">call</span> <span class="fn">pmm_alloc_frame</span>
+    <span class="cmt">; PT0 at 0x00201000</span>
+    <span class="kw">mov</span> [page_table_0], <span class="reg">eax</span>
+    <span class="kw">mov</span> <span class="reg">edi</span>, <span class="reg">eax</span>`,
+                        activeLine: 4,
+                        action: 'allocatePT0'
+                    },
+                    {
+                        title: "Fill PT entries 0-1023",
+                        desc: "<strong>Mapping:</strong> Each PT entry maps one 4KB page. Entry 0 → 0x00000000, Entry 1 → 0x00001000, ... Entry 1023 → 0x003FF000.",
+                        code: `    <span class="cmt">; Fill 1024 entries</span>
+    <span class="kw">xor</span> <span class="reg">eax</span>, <span class="reg">eax</span>  <span class="cmt">; Start at phys 0</span>
+    <span class="kw">mov</span> <span class="reg">ecx</span>, <span class="num">1024</span>
+.<span class="fn">fill_identity</span>:
+    <span class="kw">mov</span> <span class="reg">edx</span>, <span class="reg">eax</span>
+    <span class="kw">or</span>  <span class="reg">edx</span>, <span class="num">0x003</span>  <span class="cmt">; Present + R/W</span>
+    <span class="kw">mov</span> [<span class="reg">edi</span>], <span class="reg">edx</span>
+    <span class="kw">add</span> <span class="reg">eax</span>, <span class="num">0x1000</span> <span class="cmt">; Next 4KB frame</span>
+    <span class="kw">add</span> <span class="reg">edi</span>, <span class="num">4</span>
+    <span class="kw">loop</span> .<span class="fn">fill_identity</span>`,
+                        activeLine: 6,
+                        action: 'fillPT0'
+                    },
+                    {
+                        title: "PTE structure",
+                        desc: "<strong>Entry format:</strong> Each PTE: bits 31-12 = physical frame, bits 11-0 = flags. Present + R/W = 0x003.",
+                        code: `<span class="cmt">/* Page Table Entry (4 bytes)
+   ┌────────────────────┬───────────┐
+   │ Phys Frame[31:12]  │  Flags    │
+   └────────────────────┴───────────┘
+   
+   Example: PTE[256] for virt 0x00100000
+   Physical frame = 0x00100000
+   Flags = 0x003 (Present, R/W)
+   Entry value = 0x00100003
+*/</span>`,
+                        activeLine: 0,
+                        action: 'showPTEStructure'
+                    },
+                    {
+                        title: "Link PT0 to PD[0]",
+                        desc: "<strong>Connect:</strong> Write PT0's physical address to PD entry 0. Set Present and R/W flags.",
+                        code: `    <span class="cmt">; Link Page Table to PD[0]</span>
+    <span class="kw">mov</span> <span class="reg">eax</span>, [page_table_0]
+    <span class="kw">or</span>  <span class="reg">eax</span>, <span class="num">0x003</span>  <span class="cmt">; Present + R/W</span>
+    <span class="kw">mov</span> <span class="reg">edi</span>, [page_directory]
+    <span class="kw">mov</span> [<span class="reg">edi</span>], <span class="reg">eax</span>
+    <span class="cmt">; PD[0] = 0x00201003</span>
+    <span class="cmt">; Points to PT0 at 0x00201000</span>`,
+                        activeLine: 5,
+                        action: 'linkPT0'
+                    }
+                ]
+            },
+            {
+                name: "HIGHER-HALF MAPPING",
+                description: "Kernel runs at virtual 0xC0000000+ but physically lives at 1MB. This separation isolates kernel from user space.",
+                steps: [
+                    {
+                        title: "Why higher-half?",
+                        desc: "<strong>Design:</strong> User programs use 0x00000000-0xBFFFFFFF. Kernel uses 0xC0000000-0xFFFFFFFF. Clean 3GB/1GB split.",
+                        code: `<span class="cmt">/*
+ * VIRTUAL ADDRESS SPACE LAYOUT
+ * 
+ * 0x00000000 ┌──────────────────┐
+ *            │   User Space     │
+ *            │     3 GB         │
+ * 0xBFFFFFFF └──────────────────┘
+ * 0xC0000000 ┌──────────────────┐
+ *            │  Kernel Space    │
+ *            │     1 GB         │
+ * 0xFFFFFFFF └──────────────────┘
+ */</span>`,
+                        activeLine: 0,
+                        action: 'showLayout'
+                    },
+                    {
+                        title: "Calculate directory index",
+                        desc: "<strong>Math:</strong> 0xC0000000 >> 22 = 768. So PD[768] covers 0xC0000000-0xC03FFFFF.",
+                        code: `<span class="fn">setup_higher_half</span>:
+    <span class="cmt">; 0xC0000000 >> 22 = 768</span>
+    <span class="cmt">; PD entry 768 covers kernel space</span>
+    
+    <span class="kw">mov</span> <span class="reg">eax</span>, <span class="num">0xC0000000</span>
+    <span class="kw">shr</span> <span class="reg">eax</span>, <span class="num">22</span>
+    <span class="cmt">; EAX = 768 (0x300)</span>`,
+                        activeLine: 6,
+                        action: 'calcIndex768'
+                    },
+                    {
+                        title: "Allocate Page Table 768",
+                        desc: "<strong>New PT:</strong> Allocate page table for PD[768] at physical 0x00202000.",
+                        code: `    <span class="cmt">; Allocate PT for entry 768</span>
+    <span class="kw">push</span> <span class="num">4096</span>
+    <span class="kw">call</span> <span class="fn">pmm_alloc_frame</span>
+    <span class="cmt">; PT768 at 0x00202000</span>
+    <span class="kw">mov</span> [page_table_768], <span class="reg">eax</span>
+    <span class="kw">mov</span> <span class="reg">edi</span>, <span class="reg">eax</span>`,
+                        activeLine: 4,
+                        action: 'allocatePT768'
+                    },
+                    {
+                        title: "Map virtual to physical",
+                        desc: "<strong>Key step:</strong> Virtual 0xC0000000 → Physical 0x00100000 (where kernel lives). This is NOT identity!",
+                        code: `    <span class="cmt">; Map kernel: virt 0xC0000000</span>
+    <span class="cmt">; to physical 0x00100000</span>
+    <span class="kw">mov</span> <span class="reg">eax</span>, <span class="num">0x00100000</span>  <span class="cmt">; Kernel phys</span>
+    <span class="kw">mov</span> <span class="reg">ecx</span>, <span class="num">256</span>  <span class="cmt">; Map 1MB of kernel</span>
+.<span class="fn">fill_high</span>:
+    <span class="kw">mov</span> <span class="reg">edx</span>, <span class="reg">eax</span>
+    <span class="kw">or</span>  <span class="reg">edx</span>, <span class="num">0x003</span>
+    <span class="kw">mov</span> [<span class="reg">edi</span>], <span class="reg">edx</span>
+    <span class="kw">add</span> <span class="reg">eax</span>, <span class="num">0x1000</span>
+    <span class="kw">add</span> <span class="reg">edi</span>, <span class="num">4</span>
+    <span class="kw">loop</span> .<span class="fn">fill_high</span>`,
+                        activeLine: 7,
+                        action: 'fillPT768'
+                    },
+                    {
+                        title: "Link PT768 to PD[768]",
+                        desc: "<strong>Connect:</strong> PD[768] = PT768's physical address | flags. Kernel space is now mapped.",
+                        code: `    <span class="cmt">; Link PT768 to PD[768]</span>
+    <span class="kw">mov</span> <span class="reg">eax</span>, [page_table_768]
+    <span class="kw">or</span>  <span class="reg">eax</span>, <span class="num">0x003</span>
+    <span class="kw">mov</span> <span class="reg">edi</span>, [page_directory]
+    <span class="kw">add</span> <span class="reg">edi</span>, <span class="num">768*4</span>  <span class="cmt">; Offset to entry 768</span>
+    <span class="kw">mov</span> [<span class="reg">edi</span>], <span class="reg">eax</span>
+    <span class="cmt">; PD[768] = 0x00202003</span>`,
+                        activeLine: 6,
+                        action: 'linkPT768'
+                    }
+                ]
+            },
+            {
+                name: "DYNAMIC MAPPING",
+                description: "At runtime, kernel needs to map new pages. Here's the complete process for mapping any virtual address.",
+                steps: [
+                    {
+                        title: "Mapping request",
+                        desc: "<strong>Scenario:</strong> Kernel wants to map virtual 0xC0500000 to physical frame 0x02000000 (e.g., for new process).",
+                        code: `<span class="cmt">/* Runtime mapping request
+ * 
+ * map_page(0xC0500000, 0x02000000, flags)
+ * 
+ * Virtual:  0xC0500000
+ * Physical: 0x02000000
+ * Flags:    Present, R/W
+ */</span>
+
+<span class="type">void</span> <span class="fn">map_page</span>(<span class="type">uint32_t</span> virt,
+              <span class="type">uint32_t</span> phys,
+              <span class="type">uint32_t</span> flags) {`,
+                        activeLine: 10,
+                        action: 'showMapRequest'
+                    },
+                    {
+                        title: "Calculate indices",
+                        desc: "<strong>Address breakdown:</strong> Dir index = bits 31-22 = 769. Table index = bits 21-12 = 256. Offset = bits 11-0 = 0.",
+                        code: `    <span class="cmt">// Extract indices from virtual addr</span>
+    <span class="type">uint32_t</span> dir_idx = virt >> <span class="num">22</span>;
+    <span class="type">uint32_t</span> tbl_idx = (virt >> <span class="num">12</span>) & <span class="num">0x3FF</span>;
+    <span class="type">uint32_t</span> offset  = virt & <span class="num">0xFFF</span>;
+    
+    <span class="cmt">// For 0xC0500000:</span>
+    <span class="cmt">// dir_idx = 769</span>
+    <span class="cmt">// tbl_idx = 256</span>
+    <span class="cmt">// offset  = 0</span>`,
+                        activeLine: 2,
+                        action: 'calcDynamicIndices'
+                    },
+                    {
+                        title: "Check if PT exists",
+                        desc: "<strong>Lookup:</strong> Check PD[769]. If Present bit = 0, we must allocate a new page table first.",
+                        code: `    <span class="cmt">// Get PD entry for this virtual addr</span>
+    <span class="type">uint32_t</span>* pd = (<span class="type">uint32_t</span>*)<span class="num">0x00200000</span>;
+    <span class="type">uint32_t</span> pde = pd[dir_idx];
+    
+    <span class="kw">if</span> (!(pde & <span class="num">0x1</span>)) {
+        <span class="cmt">// Present bit = 0</span>
+        <span class="cmt">// Page table doesn't exist!</span>
+        <span class="cmt">// Must allocate one...</span>
+    }`,
+                        activeLine: 5,
+                        action: 'checkPTExists'
+                    },
+                    {
+                        title: "Allocate new Page Table",
+                        desc: "<strong>Allocation:</strong> Call physical frame allocator for new 4KB page table. Zero it and link to PD[769].",
+                        code: `        <span class="cmt">// Allocate new page table</span>
+        <span class="type">uint32_t</span> new_pt = <span class="fn">pmm_alloc_frame</span>();
+        <span class="cmt">// new_pt = 0x00203000</span>
+        
+        <span class="cmt">// Zero the new page table</span>
+        <span class="fn">memset</span>((<span class="type">void</span>*)new_pt, <span class="num">0</span>, <span class="num">4096</span>);
+        
+        <span class="cmt">// Link to PD with flags</span>
+        pd[dir_idx] = new_pt | <span class="num">0x003</span>;`,
+                        activeLine: 9,
+                        action: 'allocatePT769'
+                    },
+                    {
+                        title: "Create PTE",
+                        desc: "<strong>Final step:</strong> Write physical frame address + flags to PT[256]. The mapping is complete!",
+                        code: `    <span class="cmt">// Get page table address</span>
+    <span class="type">uint32_t</span>* pt = (<span class="type">uint32_t</span>*)(pd[dir_idx] & <span class="num">~0xFFF</span>);
+    
+    <span class="cmt">// Create the page table entry</span>
+    pt[tbl_idx] = phys | flags;
+    
+    <span class="cmt">// PT[256] = 0x02000003</span>
+    <span class="cmt">// Virtual 0xC0500000 now maps to</span>
+    <span class="cmt">// Physical 0x02000000!</span>`,
+                        activeLine: 5,
+                        action: 'createPTE'
+                    },
+                    {
+                        title: "Flush TLB",
+                        desc: "<strong>Important:</strong> CPU caches translations in TLB. After changing mappings, must invalidate the cached entry!",
+                        code: `    <span class="cmt">// Flush TLB entry for this address</span>
+    <span class="kw">asm volatile</span>(<span class="str">"invlpg (%0)"</span>
+                 :: <span class="str">"r"</span>(virt) : <span class="str">"memory"</span>);
+    
+    <span class="cmt">// Or reload entire TLB:</span>
+    <span class="cmt">// mov cr3, cr3</span>
+}`,
+                        activeLine: 2,
+                        action: 'flushTLB'
+                    }
+                ]
+            },
+            {
+                name: "ENABLING PAGING",
+                description: "The critical moment: flipping bit 31 of CR0. Everything changes in one instruction.",
+                steps: [
+                    {
+                        title: "Pre-enable state",
+                        desc: "<strong>Ready check:</strong> CR3 loaded, identity map ready, higher-half map ready. All code currently running at physical addresses.",
+                        code: `<span class="fn">enable_paging</span>:
+    <span class="cmt">; CR3 = 0x00200000 (PD address)</span>
+    <span class="cmt">; PD[0] set (identity map)</span>
+    <span class="cmt">; PD[768] set (higher-half)</span>
+    <span class="cmt">; EIP = 0x00100XXX (physical)</span>
+    <span class="cmt">; Paging = DISABLED</span>
+    
+    <span class="cmt">; Next instruction will change</span>
+    <span class="cmt">; EVERYTHING...</span>`,
+                        activeLine: 0,
+                        action: 'preEnable'
+                    },
+                    {
+                        title: "Set CR0 bit 31",
+                        desc: "<strong>THE MOMENT:</strong> Setting bit 31 (PG) of CR0 instantly enables paging. All addresses become virtual.",
+                        code: `    <span class="cmt">; Read current CR0</span>
+    <span class="kw">mov</span> <span class="reg">eax</span>, <span class="reg">cr0</span>
+    
+    <span class="cmt">; Set bit 31 (PG - Paging Enable)</span>
+    <span class="kw">or</span>  <span class="reg">eax</span>, <span class="num">0x80000000</span>
+    
+    <span class="cmt">; Write back - PAGING IS NOW ON!</span>
+    <span class="kw">mov</span> <span class="reg">cr0</span>, <span class="reg">eax</span>`,
+                        activeLine: 8,
+                        action: 'enablePaging'
+                    },
+                    {
+                        title: "Why it works",
+                        desc: "<strong>Seamless transition:</strong> EIP was 0x00100XXX. Now it's 'virtual' 0x00100XXX, which identity-maps to physical 0x00100XXX. Same place!",
+                        code: `<span class="cmt">/*
+ * BEFORE: EIP = 0x00100500 (physical)
+ * AFTER:  EIP = 0x00100500 (virtual)
+ * 
+ * CPU fetches next instruction from
+ * virtual 0x00100500
+ * 
+ * Translation:
+ *   Dir[0] → PT0
+ *   PT0[256] → phys 0x00100000
+ *   + offset 0x500
+ *   = physical 0x00100500 ✓
+ * 
+ * SAME PLACE! Execution continues.
+ */</span>`,
+                        activeLine: 0,
+                        action: 'showTransition'
+                    },
+                    {
+                        title: "Jump to higher half",
+                        desc: "<strong>Final step:</strong> Now safely jump to kernel's high virtual address. Can remove identity mapping after.",
+                        code: `    <span class="cmt">; Now jump to higher-half address</span>
+    <span class="kw">lea</span> <span class="reg">eax</span>, [<span class="fn">higher_half_entry</span>]
+    <span class="kw">jmp</span> <span class="reg">eax</span>
+
+<span class="fn">higher_half_entry</span>:  <span class="cmt">; At 0xC01XXXXX</span>
+    <span class="cmt">; Now running in higher half!</span>
+    <span class="cmt">; Can safely remove identity map</span>
+    <span class="kw">mov</span> dword [page_directory], <span class="num">0</span>
+    <span class="kw">invlpg</span> [<span class="num">0</span>]`,
+                        activeLine: 5,
+                        action: 'jumpHigher'
+                    },
+                    {
+                        title: "Complete!",
+                        desc: "<strong>Done:</strong> Kernel now runs at 0xC0000000+. User space gets 0x00000000-0xBFFFFFFF. Virtual memory is fully operational!",
+                        code: `<span class="cmt">/*
+ * VIRTUAL MEMORY SETUP COMPLETE!
+ * 
+ * ┌─────────────────────────────────┐
+ * │ Virtual 0xC0000000+             │
+ * │ ↓ maps to ↓                     │
+ * │ Physical 0x00100000 (kernel)    │
+ * └─────────────────────────────────┘
+ * 
+ * Kernel runs isolated in high memory
+ * Each process gets its own mappings
+ * Memory protection is now possible
+ */</span>`,
+                        activeLine: 0,
+                        action: 'complete'
+                    }
+                ]
+            }
+        ];
+        
+        // Three.js setup
+        let scene, camera, renderer, controls;
+        let physicalMemory, pageDirectory, pageTables = {};
+        let mappingLines = [];
+        let animationId;
+        
+        const canvas = document.getElementById('canvas3d');
+        
+        function initThree() {
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x0a0e14);
+            
+            camera = new THREE.PerspectiveCamera(50, canvas.clientWidth / canvas.clientHeight, 0.1, 1000);
+            camera.position.set(15, 10, 20);
+            
+            renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+            renderer.setSize(canvas.clientWidth, canvas.clientHeight);
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            
+            controls = new OrbitControls(camera, renderer.domElement);
+            controls.enableDamping = true;
+            controls.dampingFactor = 0.05;
+            controls.minDistance = 10;
+            controls.maxDistance = 50;
+            
+            // Lighting
+            const ambientLight = new THREE.AmbientLight(0x404040, 0.5);
+            scene.add(ambientLight);
+            
+            const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+            directionalLight.position.set(10, 20, 10);
+            scene.add(directionalLight);
+            
+            const pointLight = new THREE.PointLight(0x00ff9f, 0.5, 50);
+            pointLight.position.set(-10, 10, 10);
+            scene.add(pointLight);
+            
+            createPhysicalMemory();
+            createPageDirectory();
+            
+            animate();
+        }
+        
+        function createPhysicalMemory() {
+            const group = new THREE.Group();
+            group.position.set(-8, 0, 0);
+            
+            // Main memory block
+            const memGeom = new THREE.BoxGeometry(3, 12, 2);
+            const memMat = new THREE.MeshPhongMaterial({
+                color: 0x1a1f26,
+                transparent: true,
+                opacity: 0.9,
+                shininess: 30
+            });
+            const memMesh = new THREE.Mesh(memGeom, memMat);
+            group.add(memMesh);
+            
+            // Memory regions
+            const regions = [
+                { y: -4.5, h: 1, color: 0x484f58, label: 'Reserved' },
+                { y: -3, h: 2, color: 0x00ff9f, label: 'Kernel (1MB)' },
+                { y: -0.5, h: 1, color: 0xff4757, label: 'Page Directory' },
+                { y: 0.5, h: 1, color: 0x00d4ff, label: 'Page Table 0' },
+                { y: 1.5, h: 1, color: 0xbd93f9, label: 'Page Table 768' },
+                { y: 2.5, h: 1, color: 0xffb000, label: 'Page Table 769' },
+                { y: 4.5, h: 3, color: 0x21262d, label: 'Free Memory' }
+            ];
+            
+            regions.forEach(r => {
+                const geom = new THREE.BoxGeometry(2.8, r.h * 0.9, 1.8);
+                const mat = new THREE.MeshPhongMaterial({
+                    color: r.color,
+                    transparent: true,
+                    opacity: 0.7
+                });
+                const mesh = new THREE.Mesh(geom, mat);
+                mesh.position.y = r.y;
+                mesh.userData = { type: 'memRegion', label: r.label };
+                mesh.visible = false;
+                group.add(mesh);
+            });
+            
+            // Label
+            const labelGeom = new THREE.PlaneGeometry(3, 0.5);
+            const labelCanvas = document.createElement('canvas');
+            labelCanvas.width = 256;
+            labelCanvas.height = 64;
+            const ctx = labelCanvas.getContext('2d');
+            ctx.fillStyle = '#e6edf3';
+            ctx.font = 'bold 32px JetBrains Mono';
+            ctx.textAlign = 'center';
+            ctx.fillText('PHYSICAL RAM', 128, 40);
+            const labelTex = new THREE.CanvasTexture(labelCanvas);
+            const labelMat = new THREE.MeshBasicMaterial({ map: labelTex, transparent: true });
+            const labelMesh = new THREE.Mesh(labelGeom, labelMat);
+            labelMesh.position.set(0, -6.5, 1.2);
+            group.add(labelMesh);
+            
+            physicalMemory = group;
+            scene.add(group);
+        }
+        
+        function createPageDirectory() {
+            const group = new THREE.Group();
+            group.position.set(2, 0, 0);
+            
+            // PD frame
+            const frameGeom = new THREE.BoxGeometry(5, 8, 0.3);
+            const frameMat = new THREE.MeshPhongMaterial({
+                color: 0xff4757,
+                transparent: true,
+                opacity: 0.3
+            });
+            const frameMesh = new THREE.Mesh(frameGeom, frameMat);
+            group.add(frameMesh);
+            
+            // PD entries grid (simplified)
+            const entryGroup = new THREE.Group();
+            for (let row = 0; row < 16; row++) {
+                for (let col = 0; col < 8; col++) {
+                    const idx = row * 8 + col;
+                    const geom = new THREE.BoxGeometry(0.5, 0.4, 0.2);
+                    const mat = new THREE.MeshPhongMaterial({
+                        color: 0x21262d,
+                        transparent: true,
+                        opacity: 0.8
+                    });
+                    const mesh = new THREE.Mesh(geom, mat);
+                    mesh.position.set(
+                        (col - 3.5) * 0.6,
+                        (7 - row) * 0.5 - 3.5,
+                        0.2
+                    );
+                    mesh.userData = { type: 'pdEntry', index: idx };
+                    entryGroup.add(mesh);
+                }
+            }
+            group.add(entryGroup);
+            
+            // Special entries markers
+            const entry0 = entryGroup.children[0];
+            entry0.userData.special = 'identity';
+            
+            const entry768 = entryGroup.children[96]; // Represents entry 768
+            entry768.userData.special = 'kernel';
+            
+            // Label
+            const labelCanvas = document.createElement('canvas');
+            labelCanvas.width = 256;
+            labelCanvas.height = 64;
+            const ctx = labelCanvas.getContext('2d');
+            ctx.fillStyle = '#ff4757';
+            ctx.font = 'bold 24px JetBrains Mono';
+            ctx.textAlign = 'center';
+            ctx.fillText('PAGE DIRECTORY', 128, 40);
+            const labelTex = new THREE.CanvasTexture(labelCanvas);
+            const labelMat = new THREE.MeshBasicMaterial({ map: labelTex, transparent: true });
+            const labelMesh = new THREE.Mesh(new THREE.PlaneGeometry(4, 0.6), labelMat);
+            labelMesh.position.set(0, 4.5, 0.3);
+            group.add(labelMesh);
+            
+            pageDirectory = group;
+            pageDirectory.visible = false;
+            scene.add(group);
+        }
+        
+        function createPageTable(name, color, position) {
+            const group = new THREE.Group();
+            group.position.copy(position);
+            
+            const frameGeom = new THREE.BoxGeometry(4, 6, 0.3);
+            const frameMat = new THREE.MeshPhongMaterial({
+                color: color,
+                transparent: true,
+                opacity: 0.3
+            });
+            group.add(new THREE.Mesh(frameGeom, frameMat));
+            
+            // Simplified entry grid
+            for (let row = 0; row < 12; row++) {
+                for (let col = 0; col < 8; col++) {
+                    const geom = new THREE.BoxGeometry(0.4, 0.35, 0.15);
+                    const mat = new THREE.MeshPhongMaterial({
+                        color: 0x21262d,
+                        transparent: true,
+                        opacity: 0.7
+                    });
+                    const mesh = new THREE.Mesh(geom, mat);
+                    mesh.position.set(
+                        (col - 3.5) * 0.48,
+                        (5 - row) * 0.45 - 0.3,
+                        0.2
+                    );
+                    mesh.userData = { type: 'ptEntry', index: row * 8 + col };
+                    group.add(mesh);
+                }
+            }
+            
+            // Label
+            const labelCanvas = document.createElement('canvas');
+            labelCanvas.width = 256;
+            labelCanvas.height = 64;
+            const ctx = labelCanvas.getContext('2d');
+            ctx.fillStyle = '#' + color.toString(16).padStart(6, '0');
+            ctx.font = 'bold 20px JetBrains Mono';
+            ctx.textAlign = 'center';
+            ctx.fillText(name, 128, 40);
+            const labelTex = new THREE.CanvasTexture(labelCanvas);
+            const labelMat = new THREE.MeshBasicMaterial({ map: labelTex, transparent: true });
+            const labelMesh = new THREE.Mesh(new THREE.PlaneGeometry(3, 0.5), labelMat);
+            labelMesh.position.set(0, 3.5, 0.3);
+            group.add(labelMesh);
+            
+            group.visible = false;
+            scene.add(group);
+            return group;
+        }
+        
+        function createMappingLine(from, to, color) {
+            const points = [];
+            const start = new THREE.Vector3().copy(from);
+            const end = new THREE.Vector3().copy(to);
+            const mid = new THREE.Vector3().lerpVectors(start, end, 0.5);
+            mid.z += 3;
+            
+            const curve = new THREE.QuadraticBezierCurve3(start, mid, end);
+            points.push(...curve.getPoints(20));
+            
+            const geometry = new THREE.BufferGeometry().setFromPoints(points);
+            const material = new THREE.LineBasicMaterial({
+                color: color,
+                transparent: true,
+                opacity: 0.8,
+                linewidth: 2
+            });
+            
+            const line = new THREE.Line(geometry, material);
+            scene.add(line);
+            mappingLines.push(line);
+            return line;
+        }
+        
+        function clearMappingLines() {
+            mappingLines.forEach(line => scene.remove(line));
+            mappingLines = [];
+        }
+        
+        function animate() {
+            animationId = requestAnimationFrame(animate);
+            controls.update();
+            renderer.render(scene, camera);
+        }
+        
+        function updateVisualization(action) {
+            // Reset visibility
+            physicalMemory.children.forEach((child, i) => {
+                if (i > 0 && i < 8) child.visible = false;
+            });
+            
+            clearMappingLines();
+            
+            switch(action) {
+                case 'showKernel':
+                    physicalMemory.children[1].visible = true; // Reserved
+                    physicalMemory.children[2].visible = true; // Kernel
+                    break;
+                    
+                case 'allocatePD':
+                    physicalMemory.children[1].visible = true;
+                    physicalMemory.children[2].visible = true;
+                    physicalMemory.children[3].visible = true; // PD
+                    pageDirectory.visible = true;
+                    highlightPDEntry(-1);
+                    updateMemoryAddresses('0x00200000', null, null);
+                    break;
+                    
+                case 'zeroPD':
+                case 'showPDStructure':
+                    physicalMemory.children[1].visible = true;
+                    physicalMemory.children[2].visible = true;
+                    physicalMemory.children[3].visible = true;
+                    pageDirectory.visible = true;
+                    animateZeroing();
+                    break;
+                    
+                case 'loadCR3':
+                    physicalMemory.children[1].visible = true;
+                    physicalMemory.children[2].visible = true;
+                    physicalMemory.children[3].visible = true;
+                    pageDirectory.visible = true;
+                    updateRegister('cr3', 0x00200000);
+                    createMappingLine(
+                        new THREE.Vector3(-8, -0.5, 1.5),
+                        new THREE.Vector3(2, 0, 0.5),
+                        0xff4757
+                    );
+                    break;
+                    
+                case 'explainIdentity':
+                    physicalMemory.children[2].visible = true;
+                    physicalMemory.children[3].visible = true;
+                    pageDirectory.visible = true;
+                    break;
+                    
+                case 'allocatePT0':
+                    physicalMemory.children[2].visible = true;
+                    physicalMemory.children[3].visible = true;
+                    physicalMemory.children[4].visible = true; // PT0
+                    pageDirectory.visible = true;
+                    if (!pageTables['pt0']) {
+                        pageTables['pt0'] = createPageTable('PAGE TABLE 0', 0x00d4ff, new THREE.Vector3(9, 2, 0));
+                    }
+                    pageTables['pt0'].visible = true;
+                    updateMemoryAddresses(null, '0x00201000', null);
+                    break;
+                    
+                case 'fillPT0':
+                case 'showPTEStructure':
+                    physicalMemory.children[2].visible = true;
+                    physicalMemory.children[3].visible = true;
+                    physicalMemory.children[4].visible = true;
+                    pageDirectory.visible = true;
+                    if (pageTables['pt0']) pageTables['pt0'].visible = true;
+                    animatePTFill('pt0', 0x00d4ff);
+                    break;
+                    
+                case 'linkPT0':
+                    physicalMemory.children[2].visible = true;
+                    physicalMemory.children[3].visible = true;
+                    physicalMemory.children[4].visible = true;
+                    pageDirectory.visible = true;
+                    if (pageTables['pt0']) pageTables['pt0'].visible = true;
+                    highlightPDEntry(0);
+                    createMappingLine(
+                        new THREE.Vector3(2, 3.5, 0.5),
+                        new THREE.Vector3(9, 2, 0.5),
+                        0x00d4ff
+                    );
+                    break;
+                    
+                case 'showLayout':
+                case 'calcIndex768':
+                    physicalMemory.children[2].visible = true;
+                    physicalMemory.children[3].visible = true;
+                    physicalMemory.children[4].visible = true;
+                    pageDirectory.visible = true;
+                    if (pageTables['pt0']) pageTables['pt0'].visible = true;
+                    highlightPDEntry(96); // Represents 768
+                    break;
+                    
+                case 'allocatePT768':
+                    physicalMemory.children[2].visible = true;
+                    physicalMemory.children[3].visible = true;
+                    physicalMemory.children[4].visible = true;
+                    physicalMemory.children[5].visible = true; // PT768
+                    pageDirectory.visible = true;
+                    if (pageTables['pt0']) pageTables['pt0'].visible = true;
+                    if (!pageTables['pt768']) {
+                        pageTables['pt768'] = createPageTable('PAGE TABLE 768', 0xbd93f9, new THREE.Vector3(9, -4, 0));
+                    }
+                    pageTables['pt768'].visible = true;
+                    updateMemoryAddresses(null, null, '0x00202000');
+                    break;
+                    
+                case 'fillPT768':
+                    physicalMemory.children[2].visible = true;
+                    physicalMemory.children[3].visible = true;
+                    physicalMemory.children[4].visible = true;
+                    physicalMemory.children[5].visible = true;
+                    pageDirectory.visible = true;
+                    if (pageTables['pt0']) pageTables['pt0'].visible = true;
+                    if (pageTables['pt768']) pageTables['pt768'].visible = true;
+                    animatePTFill('pt768', 0xbd93f9);
+                    // Show translation
+                    updateTranslation('0xC0000000', '768', '0', '0x00100000');
+                    break;
+                    
+                case 'linkPT768':
+                    physicalMemory.children[2].visible = true;
+                    physicalMemory.children[3].visible = true;
+                    physicalMemory.children[4].visible = true;
+                    physicalMemory.children[5].visible = true;
+                    pageDirectory.visible = true;
+                    if (pageTables['pt0']) pageTables['pt0'].visible = true;
+                    if (pageTables['pt768']) pageTables['pt768'].visible = true;
+                    highlightPDEntry(96);
+                    createMappingLine(
+                        new THREE.Vector3(2, -3.5, 0.5),
+                        new THREE.Vector3(9, -4, 0.5),
+                        0xbd93f9
+                    );
+                    // Mapping line from PT768 to kernel
+                    createMappingLine(
+                        new THREE.Vector3(9, -4, 0.5),
+                        new THREE.Vector3(-8, -3, 1.5),
+                        0x00ff9f
+                    );
+                    break;
+                    
+                case 'showMapRequest':
+                case 'calcDynamicIndices':
+                    showAllStructures();
+                    updateTranslation('0xC0500000', '769', '256', '—');
+                    break;
+                    
+                case 'checkPTExists':
+                    showAllStructures();
+                    highlightPDEntry(97); // 769
+                    break;
+                    
+                case 'allocatePT769':
+                    physicalMemory.children[2].visible = true;
+                    physicalMemory.children[3].visible = true;
+                    physicalMemory.children[4].visible = true;
+                    physicalMemory.children[5].visible = true;
+                    physicalMemory.children[6].visible = true; // PT769
+                    physicalMemory.children[7].visible = true;
+                    pageDirectory.visible = true;
+                    if (pageTables['pt0']) pageTables['pt0'].visible = true;
+                    if (pageTables['pt768']) pageTables['pt768'].visible = true;
+                    if (!pageTables['pt769']) {
+                        pageTables['pt769'] = createPageTable('PAGE TABLE 769', 0xffb000, new THREE.Vector3(15, -1, 0));
+                    }
+                    pageTables['pt769'].visible = true;
+                    highlightPDEntry(97);
+                    createMappingLine(
+                        new THREE.Vector3(2, -3.8, 0.5),
+                        new THREE.Vector3(15, -1, 0.5),
+                        0xffb000
+                    );
+                    break;
+                    
+                case 'createPTE':
+                case 'flushTLB':
+                    showAllStructures();
+                    if (pageTables['pt769']) {
+                        pageTables['pt769'].visible = true;
+                        animatePTFill('pt769', 0xffb000, true);
+                    }
+                    createMappingLine(
+                        new THREE.Vector3(2, -3.8, 0.5),
+                        new THREE.Vector3(15, -1, 0.5),
+                        0xffb000
+                    );
+                    updateTranslation('0xC0500000', '769', '256', '0x02000000');
+                    break;
+                    
+                case 'preEnable':
+                    showAllStructures();
+                    break;
+                    
+                case 'enablePaging':
+                    showAllStructures();
+                    state.pagingEnabled = true;
+                    updateRegister('cr0', 0x80000011);
+                    document.getElementById('pagingStatus').querySelector('.reg-value').textContent = 'ENABLED';
+                    document.getElementById('pagingStatus').querySelector('.reg-value').style.color = 'var(--accent-green)';
+                    document.getElementById('pagingStatus').classList.add('changed');
+                    // Flash effect
+                    scene.background = new THREE.Color(0x00ff9f);
+                    setTimeout(() => scene.background = new THREE.Color(0x0a0e14), 100);
+                    break;
+                    
+                case 'showTransition':
+                    showAllStructures();
+                    // Show identity mapping working
+                    createMappingLine(
+                        new THREE.Vector3(2, 3.5, 0.5),
+                        new THREE.Vector3(9, 2, 0.5),
+                        0x00d4ff
+                    );
+                    createMappingLine(
+                        new THREE.Vector3(9, 2, 0.5),
+                        new THREE.Vector3(-8, -3, 1.5),
+                        0x00ff9f
+                    );
+                    updateTranslation('0x00100000', '0', '256', '0x00100000');
+                    break;
+                    
+                case 'jumpHigher':
+                    showAllStructures();
+                    updateRegister('eip', 0xC0100000);
+                    createMappingLine(
+                        new THREE.Vector3(2, -3.5, 0.5),
+                        new THREE.Vector3(9, -4, 0.5),
+                        0xbd93f9
+                    );
+                    createMappingLine(
+                        new THREE.Vector3(9, -4, 0.5),
+                        new THREE.Vector3(-8, -3, 1.5),
+                        0x00ff9f
+                    );
+                    updateTranslation('0xC0100000', '768', '256', '0x00100000');
+                    break;
+                    
+                case 'complete':
+                    showAllStructures();
+                    // Show all mappings
+                    createMappingLine(
+                        new THREE.Vector3(2, 3.5, 0.5),
+                        new THREE.Vector3(9, 2, 0.5),
+                        0x00d4ff
+                    );
+                    createMappingLine(
+                        new THREE.Vector3(2, -3.5, 0.5),
+                        new THREE.Vector3(9, -4, 0.5),
+                        0xbd93f9
+                    );
+                    createMappingLine(
+                        new THREE.Vector3(9, -4, 0.5),
+                        new THREE.Vector3(-8, -3, 1.5),
+                        0x00ff9f
+                    );
+                    break;
+            }
+        }
+        
+        function showAllStructures() {
+            for (let i = 1; i <= 6; i++) {
+                if (physicalMemory.children[i]) physicalMemory.children[i].visible = true;
+            }
+            pageDirectory.visible = true;
+            Object.values(pageTables).forEach(pt => pt.visible = true);
+        }
+        
+        function highlightPDEntry(index) {
+            pageDirectory.children[1].children.forEach((entry, i) => {
+                if (i === index) {
+                    entry.material.color.setHex(0x00ff9f);
+                    entry.material.opacity = 1;
+                } else if (entry.userData.special === 'identity' && index !== 0) {
+                    entry.material.color.setHex(0x00d4ff);
+                    entry.material.opacity = 0.9;
+                } else if (entry.userData.special === 'kernel' && index !== 96) {
+                    entry.material.color.setHex(0xbd93f9);
+                    entry.material.opacity = 0.9;
+                } else {
+                    entry.material.color.setHex(0x21262d);
+                    entry.material.opacity = 0.8;
+                }
+            });
+        }
+        
+        function animateZeroing() {
+            pageDirectory.children[1].children.forEach((entry, i) => {
+                setTimeout(() => {
+                    entry.material.color.setHex(0x21262d);
+                    entry.material.opacity = 0.8;
+                }, i * 10);
+            });
+        }
+        
+        function animatePTFill(ptName, color, single = false) {
+            const pt = pageTables[ptName];
+            if (!pt) return;
+            
+            pt.children.forEach((child, i) => {
+                if (i === 0 || child.type !== 'Mesh') return;
+                setTimeout(() => {
+                    if (single && i > 2) return;
+                    child.material.color.setHex(color);
+                    child.material.opacity = 0.9;
+                }, i * 20);
+            });
+        }
+        
+        function updateRegister(reg, value) {
+            const el = document.getElementById('reg' + reg.toUpperCase());
+            if (el) {
+                state.registers[reg] = value;
+                el.querySelector('.reg-value').textContent = '0x' + value.toString(16).toUpperCase().padStart(8, '0');
+                el.classList.add('changed');
+                setTimeout(() => el.classList.remove('changed'), 1000);
+            }
+        }
+        
+        function updateMemoryAddresses(pd, pt0, pt768) {
+            if (pd) {
+                document.getElementById('pdAddr').textContent = pd;
+                state.pdAddress = pd;
+            }
+            if (pt0) {
+                document.getElementById('pt0Addr').textContent = pt0;
+                state.pt0Address = pt0;
+            }
+            if (pt768) {
+                document.getElementById('pt768Addr').textContent = pt768;
+                state.pt768Address = pt768;
+            }
+        }
+        
+        function updateTranslation(virt, dir, table, phys) {
+            const el = document.getElementById('translationInfo');
+            el.innerHTML = `
+                <div>Virtual: <span style="color: var(--accent-cyan)">${virt}</span></div>
+                <div>Dir Index: <span style="color: var(--accent-amber)">${dir}</span></div>
+                <div>Table Index: <span style="color: var(--accent-amber)">${table}</span></div>
+                <div>Physical: <span style="color: var(--accent-green)">${phys}</span></div>
+            `;
+        }
+        
+        function updateUI() {
+            const phase = phases[state.phase];
+            const step = phase.steps[state.step];
+            
+            // Update phase label
+            document.getElementById('phaseLabel').textContent = `PHASE ${state.phase + 1}: ${phase.name}`;
+            document.getElementById('stepLabel').textContent = step.title;
+            
+            // Update description
+            document.getElementById('description').innerHTML = step.desc;
+            
+            // Update code view
+            const codeView = document.getElementById('codeView');
+            const lines = step.code.split('\n');
+            codeView.innerHTML = lines.map((line, i) => `
+                <div class="code-line ${i === step.activeLine ? 'active' : ''}">
+                    <span class="line-num">${i + 1}</span>
+                    <span class="line-code">${line}</span>
+                </div>
+            `).join('');
+            
+            // Update step indicator
+            document.getElementById('stepNum').textContent = state.step + 1;
+            document.getElementById('totalSteps').textContent = phase.steps.length;
+            
+            // Update phase tabs
+            document.querySelectorAll('.phase-tab').forEach((tab, i) => {
+                tab.classList.toggle('active', i === state.phase);
+            });
+            
+            // Update buttons
+            document.getElementById('prevBtn').disabled = state.phase === 0 && state.step === 0;
+            document.getElementById('nextBtn').disabled = state.phase === phases.length - 1 && state.step === phase.steps.length - 1;
+            
+            // Update visualization
+            updateVisualization(step.action);
+        }
+        
+        function nextStep() {
+            const phase = phases[state.phase];
+            if (state.step < phase.steps.length - 1) {
+                state.step++;
+            } else if (state.phase < phases.length - 1) {
+                state.phase++;
+                state.step = 0;
+            }
+            updateUI();
+        }
+        
+        function prevStep() {
+            if (state.step > 0) {
+                state.step--;
+            } else if (state.phase > 0) {
+                state.phase--;
+                state.step = phases[state.phase].steps.length - 1;
+            }
+            updateUI();
+        }
+        
+        function goToPhase(phaseIndex) {
+            state.phase = phaseIndex;
+            state.step = 0;
+            updateUI();
+        }
+        
+        function togglePlay() {
+            state.playing = !state.playing;
+            const btn = document.getElementById('playBtn');
+            btn.textContent = state.playing ? '⏸' : '⏵';
+            
+            if (state.playing) {
+                state.playInterval = setInterval(() => {
+                    const phase = phases[state.phase];
+                    if (state.phase === phases.length - 1 && state.step === phase.steps.length - 1) {
+                        state.playing = false;
+                        btn.textContent = '⏵';
+                        clearInterval(state.playInterval);
+                    } else {
+                        nextStep();
+                    }
+                }, 2500);
+            } else {
+                clearInterval(state.playInterval);
+            }
+        }
+        
+        // Event listeners
+        document.getElementById('nextBtn').addEventListener('click', nextStep);
+        document.getElementById('prevBtn').addEventListener('click', prevStep);
+        document.getElementById('playBtn').addEventListener('click', togglePlay);
+        
+        document.querySelectorAll('.phase-tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                goToPhase(parseInt(tab.dataset.phase));
+            });
+        });
+        
+        // Keyboard navigation
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowRight' || e.key === ' ') {
+                e.preventDefault();
+                nextStep();
+            } else if (e.key === 'ArrowLeft') {
+                e.preventDefault();
+                prevStep();
+            } else if (e.key >= '1' && e.key <= '5') {
+                goToPhase(parseInt(e.key) - 1);
+            }
+        });
+        
+        // Resize handling
+        function onResize() {
+            const width = canvas.clientWidth;
+            const height = canvas.clientHeight;
+            
+            camera.aspect = width / height;
+            camera.updateProjectionMatrix();
+            renderer.setSize(width, height);
+        }
+        
+        window.addEventListener('resize', onResize);
+        
+        // Visibility change
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden) {
+                if (state.playing) {
+                    clearInterval(state.playInterval);
+                }
+            } else if (state.playing) {
+                state.playInterval = setInterval(() => nextStep(), 2500);
+            }
+        });
+        
+        // Initialize
+        initThree();
+        updateUI();
+    </script>
+</body>
+</html>
